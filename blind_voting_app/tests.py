@@ -14,4 +14,5 @@ class DefaultDatabaseConnectionTestCase(TestCase):
         except OperationalError:
             self.fail('Default database not configured or connected')
         else:
+            self.assertIsNotNone(self.db_connection)
             self.assertIsNotNone(cursor)
