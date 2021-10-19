@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'blind_voting_app.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'blind_voting_app.settings_development')
 
 application = get_wsgi_application()
