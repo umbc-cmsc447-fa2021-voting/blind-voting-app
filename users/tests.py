@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from blind_voting.models import Profile
+from users.models import Profile
 from datetime import datetime
 # Create your tests here.
 
