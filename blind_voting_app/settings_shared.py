@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Application definition
 
 INSTALLED_APPS = [
-    'users.apps.UsersConfig',
+    #'users.apps.UsersConfig',
     'ballots.apps.BallotsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,7 +49,7 @@ ROOT_URLCONF = 'blind_voting_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

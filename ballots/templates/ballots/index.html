@@ -11,7 +11,7 @@
     <!--NavBar-->
     <nav class="navbar navbar-dark bg-primary mb-4">
       <div class="container">
-        <a class="navbar-brand" href="/">Team-4 Ballots</a>
+        <a class="navbar-brand" href="/">Team-4 Voting</a>
         <a class="navbar-brand" href="/admin/">{{request.user.username}}</a>
       </div>
     </nav>
@@ -27,9 +27,17 @@
         <p>
             The start of Ballot listing:
             <ol>
-                {% for ballot in ballot_title %}
-                <li>{{ ballots.ballot }}</li>
+                {% if ballot_list %}
+                {% for ballot in ballot_list %}
+                <li>
+                    {{ ballot.ballot_title }}
+                    <a align='right' href="{% url 'ballots:detail' ballot.id %}" class="btn btn-primary btn-sm">Vote Now</a>
+                    <a class="btn btn-secondary btn-sm">Results</a>
+                </li>
                 {% endfor %}
+                {% else %}
+                <p>No ballots available</p>
+                {% endif %}
             </ol>
         </p>
     </div>

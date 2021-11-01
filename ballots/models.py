@@ -11,14 +11,14 @@ class Ballot(models.Model):
         return self.ballot_title
 
 class Question(models.Model):
-    ballot1 = models.ForeignKey(Ballot, on_delete=models.CASCADE)
+    ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE)
     question_text = models.TextField(max_length=200)
 
     def __str__(self):
         return self.question_text
 
 class Choice(models.Model):
-    ballot2 = models.ForeignKey(Ballot, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
 
