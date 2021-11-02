@@ -32,7 +32,9 @@
             <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
         </div>
         {% endfor %}
+        {% if forloop.counter == question_list|length %}
         <input type="submit" value="Vote" class="btn btn-success btn-lg btn-block mt-4" />
+        {% endif %}
     </form>
     {% endfor %}
 
