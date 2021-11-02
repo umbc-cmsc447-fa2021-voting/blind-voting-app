@@ -1,11 +1,18 @@
+import datetime
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
 
 # Create your models here.
 
 class Ballot(models.Model):
-    ballot_title = models.TextField(max_length=200)
-    pub_date = models.DateTimeField('date published', default=datetime.now, blank=True)
+    ballot_title = models.TextField(max_length=200, blank=True)
+    ballot_description = models.TextField(max_length=200, blank=True)
+    pub_date = models.DateTimeField('date published', blank=True)
+    due_date = models.DateTimeField('due date', blank=True)
+
+    def was_published_recently(self):
+        now = timezone.now()
+        return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
     def __str__(self):
         return self.ballot_title

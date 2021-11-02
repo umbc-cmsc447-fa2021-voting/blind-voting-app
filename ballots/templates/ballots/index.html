@@ -16,31 +16,61 @@
       </div>
     </nav>
 
-    <div class="card text-center">
+    <div class="text-center">
         <div class="card-body">
-            <h1>Welcome To Team-4 Ballot App</h1>
-            <p>This is an example of a single question ballot app</p>
+            <h1>Welcome To Team-4 Voting App</h1>
+            <p>This is the main menu holding all ballots</p>
         </div>
     </div>
 
     <div class="container">
         <p>
-            The start of Ballot listing:
+            Ballots listed by closest to deadline:
             <ol>
                 {% if ballot_list %}
                 {% for ballot in ballot_list %}
+                {% if ballot.due_date >= today%}
                 <li>
                     {{ ballot.ballot_title }}
+                    <p>
+                        {{ ballot.ballot_description}} <br>
+                        Start Date: {{ ballot.pub_date }} <br>
+                        End Date: {{ ballot.due_date }}
+                    </p>
                     <a align='right' href="{% url 'ballots:detail' ballot.id %}" class="btn btn-primary btn-sm">Vote Now</a>
-                    <a class="btn btn-secondary btn-sm">Results</a>
+                    <br><br>
                 </li>
+                {% endif %}
                 {% endfor %}
                 {% else %}
                 <p>No ballots available</p>
                 {% endif %}
             </ol>
         </p>
+        <div class="text-center">
+            <div class="card-body">
+                <h1>Ballots Past Due Date</h1>
+            </div>
+        </div>
+        <p>
+            <ol>
+                {% if ballot_list %}
+                {% for ballot in ballot_list %}
+                {% if ballot.due_date < today %}
+                <li>
+                    {{ ballot.ballot_title }}
+                    <p>{{ ballot.ballot_description}}</p>
+                    <a class="btn btn-secondary btn-sm">Results</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <p>All ballots are still available</p>
+                {% endif %}
+            </ol>
+        </p>
     </div>
+
 </body>
 
 </html>

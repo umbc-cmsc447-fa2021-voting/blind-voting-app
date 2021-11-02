@@ -2,14 +2,16 @@ from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils import timezone
 
 # Create your views here.
 
 from ballots.models import Ballot, Question, Choice
 
 def index(request):
-    ballot_list = Ballot.objects.order_by('-pub_date')
-    context = {"ballot_list": ballot_list}
+    today = timezone.now()
+    ballot_list = Ballot.objects.order_by('due_date')
+    context = {"ballot_list": ballot_list, "today": today}
     return render(request, 'ballots/index.html', context=context)
 
 def detail(request, ballot_id):
@@ -19,7 +21,7 @@ def detail(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
-    return render(request, 'Ballots/detail.html', context=context)
+    return render(request, 'ballots/detail.html', context=context)
 
 def vote(request, question_id):
     # print(request.POST['choice'])
