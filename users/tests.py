@@ -4,7 +4,6 @@ from users.models import Profile
 from datetime import datetime
 # Create your tests here.
 
-
 class ProfileModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
