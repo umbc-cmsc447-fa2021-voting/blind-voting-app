@@ -9,6 +9,7 @@ class Ballot(models.Model):
     ballot_description = models.TextField(max_length=200, default="", blank=True)
     pub_date = models.DateTimeField('date published', default=timezone.now())
     due_date = models.DateTimeField('due date', default=timezone.now()+datetime.timedelta(days=30))
+    district = models.CharField(max_length=50, blank=True)
 
     def was_published_recently(self):
         now = timezone.now()
