@@ -1,0 +1,13 @@
+/* CSS File used for common site-wide styling */
+
+html {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+body {
+    background-color: #8ECAE6;
+    display: flex;
+    flex: 1;
+}
