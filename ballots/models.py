@@ -5,10 +5,10 @@ from django.utils import timezone
 # Create your models here.
 
 class Ballot(models.Model):
-    ballot_title = models.TextField(max_length=200, blank=True)
-    ballot_description = models.TextField(max_length=200, blank=True)
-    pub_date = models.DateTimeField('date published', blank=True)
-    due_date = models.DateTimeField('due date', blank=True)
+    ballot_title = models.TextField(max_length=200, default="")
+    ballot_description = models.TextField(max_length=200, default="", blank=True)
+    pub_date = models.DateTimeField('date published', default=timezone.now())
+    due_date = models.DateTimeField('due date', default=timezone.now()+datetime.timedelta(days=30))
 
     def was_published_recently(self):
         now = timezone.now()

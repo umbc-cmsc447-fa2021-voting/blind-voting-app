@@ -10,7 +10,7 @@ from ballots.models import Ballot, Question, Choice
 
 def index(request):
     today = timezone.now()
-    ballot_list = Ballot.objects.order_by('due_date')
+    ballot_list = Ballot.objects.filter(pub_date__lte=today).order_by('due_date')
     context = {"ballot_list": ballot_list, "today": today}
     return render(request, 'ballots/index.html', context=context)
 

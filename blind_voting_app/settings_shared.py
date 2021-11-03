@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Application definition
 
 INSTALLED_APPS = [
-    #'users.apps.UsersConfig',
+    'users.apps.UsersConfig',
     'ballots.apps.BallotsConfig',
     'django.contrib.admin',
     'django.contrib.auth',

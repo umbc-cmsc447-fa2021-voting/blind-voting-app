@@ -16,7 +16,6 @@
       </div>
     </nav>
 
-    <a class="btn btn-secondary btn-sm mb-3" href="{% url 'ballots:index' %}">Back To Ballot Listing</a>
     <h1 class="text-center mb-3">{{ ballot.ballot_title }}</h1>
     <p class="text-center mb-2">{{ ballot.ballot_description }}</p>
 
@@ -32,11 +31,13 @@
             <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
         </div>
         {% endfor %}
-        {% if forloop.counter == question_list|length %}
-        <input type="submit" value="Vote" class="btn btn-success btn-lg btn-block mt-4" />
-        {% endif %}
+        <input type="submit" value="Vote" class="btn btn-success btn-lg mt-4" />
+        <p>
+            <!--Spacing Between Questions-->
+        </p>
     </form>
     {% endfor %}
+    <a href="{% url 'ballots:index' %}" class="btn btn-primary btn-lg mt-4">Finish Ballot</a>
 
 
 </body>
