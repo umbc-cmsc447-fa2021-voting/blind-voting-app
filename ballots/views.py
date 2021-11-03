@@ -3,7 +3,8 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
-
+from django.views.generic.edit import UpdateView
+from django.views.generic.edit import CreateView
 # Create your views here.
 
 from ballots.models import Ballot, Question, Choice
@@ -41,3 +42,9 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('ballots:index'))
+
+class AddBallotView(CreateView):
+    model = Ballot
+    fields = '__all__'
+    template_name = 'add.html'
+    success_url = '/ballots/'
