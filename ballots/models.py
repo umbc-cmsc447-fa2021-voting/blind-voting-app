@@ -8,11 +8,14 @@ from django.urls import reverse
 
 # Create your models here.
 
+def now_plus_30():
+    return timezone.now() + datetime.timedelta(days=30)
+
 class Ballot(models.Model):
     ballot_title = models.TextField(max_length=200, default="")
     ballot_description = models.TextField(max_length=200, default="", blank=True)
-    pub_date = models.DateTimeField('date published', default=timezone.now())
-    due_date = models.DateTimeField('due date', default=timezone.now()+datetime.timedelta(days=30))
+    pub_date = models.DateTimeField('date published', default=timezone.now)
+    due_date = models.DateTimeField('due date', default=now_plus_30()+datetime.timedelta(days=30))
     district = models.CharField(max_length=50, blank=True)
     slug = models.SlugField(max_length=200, default=uuid.uuid1, editable=False)
 

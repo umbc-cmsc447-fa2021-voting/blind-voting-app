@@ -9,13 +9,13 @@ from users.models import Profile
 from .forms import AddBallotForm
 
 class BallotModelTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        User.objects.create(first_name='John', last_name='Smith', username = 'testuser', password='12345')
-        profile = User.profile
+    def setUp(self):
+        self.user = User.objects.create(first_name='John', last_name='Smith', username = 'testuser', password='12345')
+        profile = self.user.profile
         profile.ssn = "555-55-5555"
         profile.district = "BaltimoreCounty"
         profile.middle_name = "Jack"
+
 
     def test_was_published_recently_with_future_ballot(self):
         """
@@ -43,6 +43,10 @@ class BallotModelTests(TestCase):
         time = timezone.now() - datetime.timedelta(hours=23, minutes=59, seconds=59)
         recent_ballot = Ballot(pub_date=time)
         self.assertIs(recent_ballot.was_published_recently(), True)
+
+    def test_district_matches(self):
+        test_ballot = Ballot(district="BaltimoreCounty")
+        self.assertEqual(test_ballot.district, self.user.profile.district)
 
     """
     might want to add a test to make sure the due date of the ballot is after
