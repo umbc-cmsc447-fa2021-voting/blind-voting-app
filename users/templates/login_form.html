@@ -15,14 +15,16 @@
             <p class="form-text">To begin your private voting experience</p>
             <form method="post">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email address</label>
+                <!-- <div class="mb-3">
+                    <label for="id_email" class="form-label">Email address</label>
                     <input type="email" name="email" class="form-control" id="email">
-                    <label for="pass" class="form-label">Password</label>
-                    <input type="password" name="pass" class="form-control" id="pass`">
+                    <label for="id_password" class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" id="password">
                     <p class="form-text"><a href = "users/password_reset">Forgot Password?</a></p>
                 </div>
-                <input type="submit" class="btn btn-primary" value="LOGIN">
+                <input type="submit" class="btn btn-primary" value="LOGIN"> -->
+                {{ form.as_p }}
+                <button type="submit">Log In</button>
             </form>
         </div>
     </body>
