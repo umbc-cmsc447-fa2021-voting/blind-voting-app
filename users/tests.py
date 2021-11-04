@@ -45,6 +45,44 @@ class ProfileModelTest(TestCase):
         max_length = user.profile._meta.get_field('middle_name').max_length
         self.assertEqual(max_length, 30)
 
+class LoginFlowTests(TestCase):
+    def setUp(self):
+        User.objects.create(username = 'johnny', first_name='John', last_name='Doe', email='JohnDoe@gmail.com', password='password123')
+        profile = User.profile
+        profile.ssn = '111-11-1111'
+        profile.district = 'HowardCounty'
+        profile.middle_name = 'Jack'
+
+    def test_get_login(self):
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_login_success(self):
+        data = { 'username': 'johnny', 'password': 'password123' }
+        response = self.client.post(reverse('login'), data, follow=True)
+        # self.assertTrue(response.context['user'].is_active)
+        self.assertEqual(response.status_code, 200)
+        
+        # Check if user is logged in or not
+        user = User.objects.get(username='johnny')
+        # self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+        self.assertTrue(user.is_authenticated)
+        
+        self.client.logout()
+        # self.client.post('/users/logout', data, follow=True)
+        # self.assertRedirects(response, '/admin', status_code=302, target_status_code=200, msg_prefix='', fetch_redirect_response=True)
+        # self.assertEqual(response.url, '')
+    
+    def test_post_login_failure(self):
+        data = { 'username': 'DNE', 'password': 'password123' }
+        response = self.client.post(reverse('login'), data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        user = User.objects.get(username='johnny')
+        # self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+        self.assertTrue(user.is_authenticated)
+        # self.client.logout()
+
 class PasswordResetFlowTests(TestCase):
     def setUp(self):
         User.objects.create(first_name='John', last_name='Doe', email='JohnDoe@gmail.com')
