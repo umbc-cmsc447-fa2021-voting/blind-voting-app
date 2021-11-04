@@ -1,6 +1,8 @@
 import datetime
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.urls import reverse
 
 # Create your models here.
 
@@ -10,6 +12,7 @@ class Ballot(models.Model):
     pub_date = models.DateTimeField('date published', default=timezone.now())
     due_date = models.DateTimeField('due date', default=timezone.now()+datetime.timedelta(days=30))
     district = models.CharField(max_length=50, blank=True)
+    slug = models.SlugField(max_length=200, default=ballot_title, unique=True)
 
     def was_published_recently(self):
         now = timezone.now()
@@ -17,6 +20,14 @@ class Ballot(models.Model):
 
     def __str__(self):
         return self.ballot_title
+
+    def get_absolute_url(self):
+        return reverse('edit', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.ballot_title)
+        return super().save(*args, **kwargs)
 
 class Question(models.Model):
     ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE)

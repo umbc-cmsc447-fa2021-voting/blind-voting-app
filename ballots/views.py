@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic.edit import UpdateView
 from django.views.generic.edit import CreateView
+from django.views.generic.list import ListView
 # Create your views here.
 
 from ballots.models import Ballot, Question, Choice
@@ -43,8 +44,19 @@ def vote(request, question_id):
         # user hits the Back button.
         return HttpResponseRedirect(reverse('ballots:index'))
 
+class BallotAdminView(ListView):
+    model = Ballot
+    template_name = "ballot_admin.html"
+    context_object_name = "ballots"
+
 class AddBallotView(CreateView):
     model = Ballot
     fields = '__all__'
     template_name = 'add.html'
-    success_url = '/ballots/'
+    success_url = '/ballot-admin'
+
+class BallotEditView(UpdateView):
+    model = Ballot
+    fields = '__all__'
+    template_name = 'add.html'
+    success_url = '/ballot-admin/'
