@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.views.generic.edit import UpdateView
 from django.views.generic.edit import CreateView
 from django.views.generic.list import ListView
+from .forms import AddForm
 # Create your views here.
 
 from ballots.models import Ballot, Question, Choice
@@ -50,13 +51,20 @@ class BallotAdminView(ListView):
     context_object_name = "ballots"
 
 class AddBallotView(CreateView):
-    model = Ballot
-    fields = '__all__'
     template_name = 'add.html'
+    form_class = AddForm
     success_url = '/ballot-admin'
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 class BallotEditView(UpdateView):
     model = Ballot
-    fields = '__all__'
+    form_class = AddForm
     template_name = 'add.html'
-    success_url = '/ballot-admin/'
+    success_url = '/ballot-admin'
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
