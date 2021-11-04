@@ -83,7 +83,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Added for Login Functionality
-LOGIN_REDIRECT_URL = '/admin'
+LOGIN_REDIRECT_URL = '/'
 
 
 # Internationalization
