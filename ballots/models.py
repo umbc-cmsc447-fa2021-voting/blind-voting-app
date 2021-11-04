@@ -1,4 +1,6 @@
 import datetime
+import uuid
+
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils import timezone
@@ -12,7 +14,7 @@ class Ballot(models.Model):
     pub_date = models.DateTimeField('date published', default=timezone.now())
     due_date = models.DateTimeField('due date', default=timezone.now()+datetime.timedelta(days=30))
     district = models.CharField(max_length=50, blank=True)
-    slug = models.SlugField(max_length=200, default=ballot_title, unique=True)
+    slug = models.SlugField(max_length=200, default=uuid.uuid1, editable=False)
 
     def was_published_recently(self):
         now = timezone.now()
@@ -22,11 +24,11 @@ class Ballot(models.Model):
         return self.ballot_title
 
     def get_absolute_url(self):
-        return reverse('edit', kwargs={'slug': self.slug})
+        return reverse('ballots:edit', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.ballot_title)
+            self.slug = slugify(uuid.uuid1)
         return super().save(*args, **kwargs)
 
 class Question(models.Model):

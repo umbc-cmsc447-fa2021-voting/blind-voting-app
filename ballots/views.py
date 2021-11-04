@@ -1,12 +1,13 @@
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render
+from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
-from django.views.generic.edit import UpdateView
-from django.views.generic.edit import CreateView
-from django.views.generic.list import ListView
-from .forms import AddForm
+from django.views.generic import UpdateView, CreateView, ListView, FormView
+from django.views.generic.detail import SingleObjectMixin
+from .forms import AddBallotForm, BallotQuestionFormset
+
 # Create your views here.
 
 from ballots.models import Ballot, Question, Choice
@@ -50,9 +51,12 @@ class BallotAdminView(ListView):
     template_name = "ballot_admin.html"
     context_object_name = "ballots"
 
+    def get_queryset(self, *args, **kwargs):
+        return Ballot.objects.filter(pub_date__gte=timezone.now())
+
 class AddBallotView(CreateView):
     template_name = 'add.html'
-    form_class = AddForm
+    form_class = AddBallotForm
     success_url = '/ballot-admin'
 
     def form_valid(self, form):
@@ -61,10 +65,39 @@ class AddBallotView(CreateView):
 
 class BallotEditView(UpdateView):
     model = Ballot
-    form_class = AddForm
-    template_name = 'add.html'
+    form_class = AddBallotForm
+    template_name = 'ballotedit.html'
     success_url = '/ballot-admin'
 
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
+
+class AddQuestionView(SingleObjectMixin, FormView):
+    model = Question
+    template_name = 'addquestion.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=Ballot.objects.all())
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=Ballot.objects.all())
+        return super().post(request, *args, **kwargs)
+
+    def get_form(self, form_class = None):
+        return BallotQuestionFormset(**self.get_form_kwargs(), instance=self.object)
+
+    def form_valid(self, form):
+        form.save()
+
+        messages.add_message(
+            self.request,
+            messages.SUCCESS,
+            'Changes were saved.'
+        )
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('ballots:edit', kwargs={'slug': self.object.slug})

@@ -1,7 +1,8 @@
 from django import forms
-from .models import Ballot
+from .models import Ballot, Question, Choice
+from django.forms.models import inlineformset_factory
 
-class AddForm(forms.ModelForm):
+class AddBallotForm(forms.ModelForm):
     class Meta:
         model = Ballot
         fields = {'ballot_title', 'ballot_description', 'pub_date', 'due_date', 'district'}
@@ -13,3 +14,5 @@ class AddForm(forms.ModelForm):
         }
 
         field_order = ['ballot_title', 'ballot_description', 'pub_date', 'due_date', 'district']
+
+BallotQuestionFormset = inlineformset_factory(Ballot, Question, fields=('question_text',))
