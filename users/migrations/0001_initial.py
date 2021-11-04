@@ -19,10 +19,6 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('district', models.CharField(max_length=50)),
-                ('ssn', models.CharField(max_length=20)),
-                ('middle_name', models.CharField(max_length=30)),
-                ('birth_date', models.DateField()),
                 ('district', models.CharField(blank=True, max_length=50)),
                 ('ssn', models.CharField(blank=True, max_length=20)),
                 ('middle_name', models.CharField(blank=True, max_length=30)),
