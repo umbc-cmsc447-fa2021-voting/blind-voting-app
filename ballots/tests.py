@@ -33,7 +33,9 @@ class BallotModelTests(TestCase):
         recent_ballot = Ballot(pub_date=time)
         self.assertIs(recent_ballot.was_published_recently(), True)
 
-    """
-    might want to add a test to make sure the due date of the ballot is after
-    the publish. Don't want a ballot to be past due as soon as it is created
-    """
+        """
+        makes sure the due date of the ballot is after the publish.
+        Don't want a ballot to be past due as soon as it is created.
+        Fixed by clean function in models.py
+        """
+
