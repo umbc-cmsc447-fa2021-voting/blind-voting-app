@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>{{ ballot.ballot_title }} Questions {% block title %}{% endblock %}</title>
+</head>
+
+<body>
+    <!--NavBar-->
+    <nav class="navbar navbar-dark bg-primary mb-4">
+      <div class="container">
+        <a class="navbar-brand" href="/">Team-4 Voting</a>
+        <a class="navbar-brand" href="/admin/">{{request.user.username}}</a>
+      </div>
+    </nav>
+
+    {% for question in question_list %}
+    <h1 class="mb-5 text-center">{{ question.question_text }}</h1>
+
+    <ul class="container-sm mb-5">
+        {% for choice in question.choice_set.all %}
+        <li class="list-group-item">
+            {{ choice.choice_text }} <span class="badge badge-success float-right">{{ choice.votes }}
+                vote{{ choice.votes | pluralize }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+    <a class="btn btn-secondary" href="{% url 'ballots:index' %}">Back To Polls</a>
+
+</body>
+</html>

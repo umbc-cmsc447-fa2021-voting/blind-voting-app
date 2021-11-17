@@ -7,4 +7,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('<int:ballot_id>/', views.detail, name='detail'),
     path('<int:question_id>/vote/', views.vote, name='vote'),
+    path('<int:ballot_id>/results/', views.results, name='results'),
 ]

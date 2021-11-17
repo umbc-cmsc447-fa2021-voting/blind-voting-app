@@ -23,6 +23,15 @@ def detail(request, ballot_id):
         raise Http404("Ballot does not exist")
     return render(request, 'ballots/detail.html', context=context)
 
+def results(request, ballot_id):
+    try:
+        ballot = Ballot.objects.get(pk=ballot_id)
+        question_list = Question.objects.filter(ballot=ballot_id)
+        context = {'ballot': ballot, 'question_list': question_list}
+    except Ballot.DoesNotExist:
+        raise Http404("Ballot does not exist")
+    return render(request, 'ballots/results.html', context=context)
+
 def vote(request, question_id):
     # print(request.POST['choice'])
     question = get_object_or_404(Question, pk=question_id)

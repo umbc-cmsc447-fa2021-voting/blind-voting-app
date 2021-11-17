@@ -60,7 +60,7 @@
                 <li>
                     {{ ballot.ballot_title }}
                     <p>{{ ballot.ballot_description}}</p>
-                    <a class="btn btn-secondary btn-sm">Results</a>
+                    <a class="btn btn-secondary btn-sm" href="{% url 'ballots:results' ballot.id %}">Results</a>
                 </li>
                 {% endif %}
                 {% endfor %}
