@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import UpdateView, CreateView, ListView, FormView
 from django.views.generic.detail import SingleObjectMixin
-from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
+from .forms import AddBallotForm, EditBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 # Create your views here.
 
@@ -65,7 +65,7 @@ class AddBallotView(CreateView):
 
 class BallotEditView(UpdateView):
     model = Ballot
-    form_class = AddBallotForm
+    form_class = EditBallotForm
     template_name = 'ballotedit.html'
     success_url = '/ballot-admin'
 

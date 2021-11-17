@@ -18,7 +18,6 @@ class BallotModelTests(TestCase):
         profile.district = "BaltimoreCounty"
         profile.middle_name = "Jack"
         self.ballot = Ballot.objects.create(ballot_title="Test", district="BaltimoreCounty")
-        #self.question = Question.objects.create(ballot_title="Test",ballot=self.ballot)
 
 
     def test_was_published_recently_with_future_ballot(self):
@@ -84,7 +83,7 @@ class BallotFormTests(TestCase):
         self.assertTrue(form.fields['pub_date'].label is None or form.fields['pub_date'].
                         label == 'Date published')
 
-    def test_ballot_form_description(self):
+    def test_ballot_form_due_date(self):
         form = AddBallotForm()
         self.assertTrue(form.fields['due_date'].label is None or form.fields['due_date'].
                         label == 'Due date')

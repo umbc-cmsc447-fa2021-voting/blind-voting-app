@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.urls import reverse
 
 # Create your models here.
+def now_plus_7():
+    return timezone.now() + datetime.timedelta(days=7)
 
 def now_plus_30():
     return timezone.now() + datetime.timedelta(days=30)
@@ -14,7 +16,7 @@ def now_plus_30():
 class Ballot(models.Model):
     ballot_title = models.TextField(max_length=200, default="")
     ballot_description = models.TextField(max_length=200, default="", blank=True)
-    pub_date = models.DateTimeField('date published', default=timezone.now)
+    pub_date = models.DateTimeField('date published', default=now_plus_7)
     due_date = models.DateTimeField('due date', default=now_plus_30)
     district = models.CharField(max_length=50, blank=True)
 
