@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import UpdateView, CreateView, ListView, FormView
 from django.views.generic.detail import SingleObjectMixin
-from .forms import AddBallotForm, BallotQuestionFormset
+from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 # Create your views here.
 
@@ -85,8 +85,37 @@ class AddQuestionView(SingleObjectMixin, FormView):
         self.object = self.get_object(queryset=Ballot.objects.all())
         return super().post(request, *args, **kwargs)
 
-    def get_form(self, form_class = None):
+    def get_form(self, form_class=None):
         return BallotQuestionFormset(**self.get_form_kwargs(), instance=self.object)
+
+    def form_valid(self, form):
+        form.save()
+
+        messages.add_message(
+            self.request,
+            messages.SUCCESS,
+            'Changes were saved.'
+        )
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('ballots:edit', kwargs={'pk': self.object.pk})
+
+
+class AddChoiceView(SingleObjectMixin, FormView):
+    model = Choice
+    template_name = 'addchoice.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=Question.objects.all())
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=Question.objects.all())
+        return super().post(request, *args, **kwargs)
+
+    def get_form(self, form_class=None):
+        return QuestionChoiceFormset(**self.get_form_kwargs(), instance=self.object)
 
     def form_valid(self, form):
         form.save()
@@ -100,4 +129,4 @@ class AddQuestionView(SingleObjectMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('ballots:edit', kwargs={'slug': self.object.slug})
+        return reverse('ballots:questions', kwargs={'pk': self.object.ballot.pk})

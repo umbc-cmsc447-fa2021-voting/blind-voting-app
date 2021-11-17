@@ -10,7 +10,7 @@
             <div class="row">
                 {% for ballot in ballots %}
                 <div class="col-md-4">
-                    <a class="text-dark" href="{% url 'ballots:edit' slug=ballot.slug %}">
+                    <a class="text-dark" href="{% url 'ballots:edit' pk=ballot.pk %}">
                         <div class="card mb-4 box-shadow">
                             <div class="card-body">
                                 <h2 style="font-size:18px;font-weight:bold;min-height:42px;">

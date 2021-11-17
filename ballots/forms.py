@@ -15,4 +15,8 @@ class AddBallotForm(forms.ModelForm):
 
         field_order = ['ballot_title', 'ballot_description', 'pub_date', 'due_date', 'district']
 
+
 BallotQuestionFormset = inlineformset_factory(Ballot, Question, fields=('question_text',))
+
+
+QuestionChoiceFormset = inlineformset_factory(Question, Choice, fields=('choice_text',))

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Editing Questions {{ ballot.ballot_title }}{% endblock %}
+{% block title %}Editing Choices {{ question.question_text }}{% endblock %}
 
 {% block content %}
   <form action="" method="post" enctype="multipart/form-data">
@@ -15,18 +15,17 @@
     {{ form.management_form }}
     {{ form.non_form_errors }}
 
-    <h3>Update Questions</h3>
-    {% for question_form in form.forms %}
+    <h3>Update Choices</h3>
+    {% for choice_form in form.forms %}
       <hr>
       <h5>
-        {% if question_form.instance.id %}
-          Question: {{ question_form.instance.question_text }}
-          <a class="text-dark" href="{% url 'ballots:choices' pk=question_form.instance.pk %}">Add Choices</a>
+        {% if choice_form.instance.id %}
+          Choice: {{ choice_form.instance.choice_text }}
         {% else %}
           {% if form.forms|length > 1 %}
-            Add another Question
+            Add another Choice
           {% else %}
-            Add a Question
+            Add a Choice
           {% endif %}
         {% endif %}
       </h5>
@@ -34,13 +33,13 @@
         {{ hidden_field.errors }}
       {% endfor %}
       <table>
-        {{ question_form.as_table }}
+        {{ choice_form.as_table }}
       </table>
     {% endfor %}
     <hr>
     <p>
-      <button type="submit" value="Update Questions" class="btn btn-primary w-100 mb-3">Update Questions</button>
-      <a href="{% url 'ballots:edit' pk=ballot.pk%}" role="button" class="btn btn-secondary w-100">Cancel</a>
+      <button type="submit" value="Update Choices" class="btn btn-primary w-100 mb-3">Update Choices</button>
+
     </p>
   </form>
 

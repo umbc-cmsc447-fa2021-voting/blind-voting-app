@@ -17,7 +17,6 @@ class Ballot(models.Model):
     pub_date = models.DateTimeField('date published', default=timezone.now)
     due_date = models.DateTimeField('due date', default=now_plus_30)
     district = models.CharField(max_length=50, blank=True)
-    slug = models.SlugField(max_length=200, default=uuid.uuid1, editable=False)
 
     def was_published_recently(self):
         now = timezone.now()
@@ -27,12 +26,7 @@ class Ballot(models.Model):
         return self.ballot_title
 
     def get_absolute_url(self):
-        return reverse('ballots:edit', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(uuid.uuid1)
-        return super().save(*args, **kwargs)
+        return reverse('ballots:edit', kwargs={'pk': self.pk})
 
 class Question(models.Model):
     ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE)
@@ -41,9 +35,12 @@ class Question(models.Model):
     def __str__(self):
         return self.question_text
 
+    def get_absolute_url(self):
+        return reverse('ballots:questions', kwargs={'pk': self.ballot.pk})
+
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice_text = models.CharField(max_length=200)
+    choice_text = models.TextField(max_length=200)
     votes = models.IntegerField(default=0)
 
     def __str__(self):
