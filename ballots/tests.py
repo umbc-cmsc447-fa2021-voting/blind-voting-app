@@ -4,17 +4,21 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Ballot
+from .models import Ballot, Question, Choice
 from users.models import Profile
-from .forms import AddBallotForm
+from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 class BallotModelTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create(first_name='John', last_name='Smith', username = 'testuser', password='12345')
+        self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
+                                        password='password123', email='JohnSmith@gmail.com')
+        self.user.save
         profile = self.user.profile
         profile.ssn = "555-55-5555"
         profile.district = "BaltimoreCounty"
         profile.middle_name = "Jack"
+        self.ballot = Ballot.objects.create(ballot_title="Test", district="BaltimoreCounty")
+        #self.question = Question.objects.create(ballot_title="Test",ballot=self.ballot)
 
 
     def test_was_published_recently_with_future_ballot(self):
@@ -45,8 +49,14 @@ class BallotModelTests(TestCase):
         self.assertIs(recent_ballot.was_published_recently(), True)
 
     def test_district_matches(self):
-        test_ballot = Ballot(district="BaltimoreCounty")
-        self.assertEqual(test_ballot.district, self.user.profile.district)
+        wrong_ballot = Ballot(ballot_title="Wrong", district="MontgomeryCounty")
+        wrong_ballot.save()
+        self.ballot.save()
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('ballots:index'))
+        for ballot in response.context['ballot_list']:
+            self.assertEqual(response.context['user'].profile.district, ballot.district)
+        #self.assertEqual(test_ballot.district, self.user.profile.district)
 
     """
     might want to add a test to make sure the due date of the ballot is after
@@ -97,3 +107,30 @@ class BallotAddTests(TestCase):
         response = self.client.get(reverse('ballots:add'))
         self.assertEqual(response.status_code, 200)
 
+class BallotEditTests(TestCase):
+    def setUp(self):
+        self.ballot = Ballot.objects.create(ballot_title="Test")
+
+    def test_edit_url_exists(self):
+        url = reverse('ballots:edit', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+class AddQuestionTests(TestCase):
+    def setUp(self):
+        self.ballot = Ballot.objects.create(ballot_title="Test")
+
+    def test_question_url_exists(self):
+        url = reverse('ballots:questions', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+class AddChoiceTests(TestCase):
+    def setUp(self):
+        self.ballot = Ballot.objects.create(ballot_title="Test")
+        self.question = Question.objects.create(question_text="Test", ballot_id=self.ballot.id)
+
+    def test_question_url_exists(self):
+        url = reverse('ballots:choices', kwargs={'pk': self.question.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
