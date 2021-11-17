@@ -6,6 +6,7 @@
             <h1 class="display-4">Ballots</h1>
             <p class="lead">Ballots managed under your district</p>
         </div>
+        <a class="text-dark" href="{% url 'ballots:published'%}">Published Ballots</a>
         <div class="py-5">
             <div class="row">
                 {% for ballot in ballots %}
