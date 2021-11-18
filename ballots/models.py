@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 class Ballot(models.Model):
     ballot_title = models.TextField(max_length=200, default="")
     ballot_description = models.TextField(max_length=200, default="", blank=True)
+    district = models.CharField(max_length=50, blank=True)
     pub_date = models.DateTimeField('date published')
     due_date = models.DateTimeField('due date')
 
