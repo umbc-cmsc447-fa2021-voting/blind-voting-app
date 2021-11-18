@@ -19,7 +19,7 @@ class AddBallotForm(forms.ModelForm):
             'district': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-        field_order = ['ballot_title', 'ballot_description', 'pub_date', 'due_date', 'district']
+    field_order = ['ballot_title', 'ballot_description', 'pub_date', 'due_date', 'district']
 
     def clean_pub_date(self):
         data = self.cleaned_data.get('pub_date')

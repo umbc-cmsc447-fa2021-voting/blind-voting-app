@@ -106,6 +106,11 @@ class BallotEditView(UserAccessMixin, UpdateView):
         form.save()
         return super().form_valid(form)
 
+    def get(self, request, *args, **kwargs):
+        if(self.get_object().pub_date <= timezone.now()):
+            return redirect('/ballot-admin')
+        return super().get(request, *args, **kwargs)
+
 class AddQuestionView(UserAccessMixin, FormView):
     permission_required = 'ballot.change_ballot'
 

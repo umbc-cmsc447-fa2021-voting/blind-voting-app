@@ -88,23 +88,56 @@ class BallotFormTests(TestCase):
         self.assertTrue(form.fields['due_date'].label is None or form.fields['due_date'].
                         label == 'Due date')
 
+    def test_ballot_form_pub_past(self):
+        date = timezone.now() - datetime.timedelta(days=1)
+        form = AddBallotForm(data={'ballot_title': "Test", 'ballot_description': "test", 'pub_date': date,
+                                   'due_date': timezone.now() + datetime.timedelta(days=30)})
+        self.assertFalse(form.is_valid())
+
+    def test_ballot_form_pub_now(self):
+        date = timezone.now()
+        form = AddBallotForm(data={'ballot_title': "Test", 'ballot_description': "test", 'pub_date': date,
+                                   'due_date': timezone.now() + datetime.timedelta(days=30)})
+        self.assertFalse(form.is_valid())
+
+    def test_ballot_form_pub_future(self):
+        date = timezone.now() + datetime.timedelta(days=1)
+        form = AddBallotForm(data={'ballot_title': "Test", 'ballot_description': "test", 'pub_date':date,
+                                   'due_date':timezone.now() + datetime.timedelta(days=30)})
+        self.assertTrue(form.is_valid())
+
+    def test_ballot_form_pub_after_due(self):
+        date = timezone.now() + datetime.timedelta(days=31)
+        form = AddBallotForm(data={'ballot_title': "Test", 'ballot_description': "test", 'pub_date':date,
+                                   'due_date':timezone.now() + datetime.timedelta(days=30)})
+        self.assertFalse(form.is_valid())
+
 class BallotAdminTests(TestCase):
     def test_admin_url_exists(self):
         response = self.client.get('/ballot-admin')
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
 
     def test_admin_url_reverse(self):
         response = self.client.get(reverse('ballots:ballot-admin'))
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
+
+class PublishedBallotsTests(TestCase):
+    def test_published_url_exists(self):
+        response = self.client.get('/ballot-admin/published')
+        self.assertNotEqual(response.status_code, 404)
+
+    def test_published_url_reverse(self):
+        response = self.client.get(reverse('ballots:published'))
+        self.assertNotEqual(response.status_code, 404)
 
 class BallotAddTests(TestCase):
     def test_add_url_exists(self):
         response = self.client.get('/add/')
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
 
-    def test_admin_url_reverse(self):
+    def test_add_url_reverse(self):
         response = self.client.get(reverse('ballots:add'))
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
 
 class BallotEditTests(TestCase):
     def setUp(self):
@@ -113,7 +146,7 @@ class BallotEditTests(TestCase):
     def test_edit_url_exists(self):
         url = reverse('ballots:edit', kwargs={'pk': self.ballot.pk})
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
 
 class AddQuestionTests(TestCase):
     def setUp(self):
@@ -122,14 +155,14 @@ class AddQuestionTests(TestCase):
     def test_question_url_exists(self):
         url = reverse('ballots:questions', kwargs={'pk': self.ballot.pk})
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
 
 class AddChoiceTests(TestCase):
     def setUp(self):
         self.ballot = Ballot.objects.create(ballot_title="Test")
         self.question = Question.objects.create(question_text="Test", ballot_id=self.ballot.id)
 
-    def test_question_url_exists(self):
+    def test_choice_url_exists(self):
         url = reverse('ballots:choices', kwargs={'pk': self.question.pk})
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 404)
