@@ -1,6 +1,10 @@
 import datetime
+import uuid
+
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -17,6 +21,7 @@ class Ballot(models.Model):
     district = models.CharField(max_length=50, blank=True)
     pub_date = models.DateTimeField('date published', default=timezone.now)
     due_date = models.DateTimeField('due date', default=now_plus_30)
+    slug = models.SlugField(max_length=200, default=uuid.uuid1, editable=False)
 
     def was_published_recently(self):
         now = timezone.now()
@@ -29,6 +34,14 @@ class Ballot(models.Model):
 
     def __str__(self):
         return self.ballot_title
+
+    def get_absolute_url(self):
+        return reverse('ballots:edit', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(uuid.uuid1)
+        return super().save(*args, **kwargs)
 
 
 class Question(models.Model):
