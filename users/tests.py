@@ -80,8 +80,10 @@ class LoginFlowTests(TestCase):
         # self.client.logout()
 
 class PasswordResetFlowTests(TestCase):
+    user = None
+
     def setUp(self):
-        User.objects.create(first_name='John', last_name='Doe', email='JohnDoe@gmail.com')
+        self.user = User.objects.create(username='JohnDoe', first_name='John', last_name='Doe', email='JohnDoe@gmail.com')
         profile = User.profile
         profile.ssn = '111-11-1111'
         profile.district = 'HowardCounty'
@@ -98,17 +100,19 @@ class PasswordResetFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/users/password_reset/done/')
 
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Password reset on testserver')
+        self.assertGreater(len(mail.outbox), 0)
+        reset_emails = [email for email in mail.outbox if email.subject == 'Password reset on testserver' and self.user.username in email.body]
+        self.assertEqual(len(reset_emails), 1)
     
     def test_post_password_reset_failure(self):
         data = { 'email': 'DNE@gmail.com' }
+        outbox_len_before = len(mail.outbox)
         response = self.client.post(reverse('password_reset'), data)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/users/password_reset/done/')
 
-        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), outbox_len_before)
 
     def test_password_reset_confirm(self):
         data = { 'email': 'JohnDoe@gmail.com' }
@@ -128,3 +132,18 @@ class PasswordResetFlowTests(TestCase):
         # Assert that our reset was accepted
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/users/reset/{}/set-password/'.format(uid))
+
+class NewAccountTests(TestCase):
+    user = None
+
+    def setUp(self):
+        self.user = User.objects.create(username='JohnDoe', first_name='John', last_name='Doe', email='JohnDoe@gmail.com')
+        profile = User.profile
+        profile.ssn = '111-11-1111'
+        profile.district = 'HowardCounty'
+        profile.middle_name = 'Jack'
+
+    def test_new_user_sends_email(self):
+        self.assertGreater(len(mail.outbox), 0)
+        reset_emails = [email for email in mail.outbox if email.subject == 'Blind Voting App - Account Created' and self.user.username in email.body]
+        self.assertEqual(len(reset_emails), 1)
