@@ -192,6 +192,21 @@ class BallotAdminTests(TestCase):
     end url tests
     """
 
+    def test_admin_list(self):
+        """
+        ballot admin should only show unpublished ballots
+        adding one ballot with pub date in future and one in past should leave list with only one entry
+        """
+        old_ballot = Ballot(ballot_title="Old", pub_date=timezone.now() - datetime.timedelta(days=1))
+        new_ballot = Ballot(ballot_title="New", pub_date=timezone.now() + datetime.timedelta(days=1))
+        old_ballot.save()
+        new_ballot.save()
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        self.client.force_login(admin)
+        response = self.client.get('/ballot-admin')
+        self.assertEqual(len(response.context['ballots']), 1)
+
 class PublishedBallotsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
@@ -243,6 +258,94 @@ class PublishedBallotsTests(TestCase):
     """
     end url tests
     """
+
+    def test_published_list(self):
+        """
+        published should only show published ballots
+        adding one ballot with pub date in future and one in past should leave list with only one entry
+        """
+        old_ballot = Ballot(ballot_title="Old", pub_date=timezone.now() - datetime.timedelta(days=2),
+                            due_date=timezone.now() - datetime.timedelta(days=1))
+        new_ballot = Ballot(ballot_title="New", pub_date=timezone.now() + datetime.timedelta(days=1))
+        pub_ballot = Ballot(ballot_title="New", pub_date=timezone.now())
+        old_ballot.save()
+        new_ballot.save()
+        pub_ballot.save()
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        self.client.force_login(admin)
+        response = self.client.get('/ballot-admin/published')
+        self.assertEqual(len(response.context['ballots']), 1)
+
+class PastBallotsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
+                                        password='password123', email='JohnSmith@gmail.com')
+        self.user.save
+
+    """
+    published ballots url tests
+    """
+    def test_past_url_exists(self):
+        """
+        if url exists shouldn't 404, status code should be 302 due to redirect
+        """
+        response = self.client.get('/ballot-admin/past')
+        self.assertNotEqual(response.status_code, 404)
+
+    def test_past_url_reverse(self):
+        """
+        reverse match should exist
+        if url exists shouldn't 404, status code should be 302 due to redirect
+        """
+        response = self.client.get(reverse('ballots:past'))
+        self.assertNotEqual(response.status_code, 404)
+
+    def test_past_anon_redirect(self):
+        """
+        if no user is logged in redirects to login page
+        """
+        response = self.client.get('/ballot-admin/past')
+        self.assertRedirects(response, '/users/login/')
+
+    def test_past_non_staff_redirect(self):
+        """
+        if non admin is logged in redirects to ballot index
+        """
+        self.client.force_login(self.user)
+        response = self.client.get('/ballot-admin/past')
+        self.assertRedirects(response, '/')
+
+    def test_past_staff_access(self):
+        """
+        if admin is logged in response succeeds
+        """
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        response = self.client.get('/ballot-admin/past')
+        self.assertEqual(response.status_code, 200)
+
+    """
+    end url tests
+    """
+
+    def test_published_list(self):
+        """
+        published should only show published ballots
+        adding one ballot with pub date in future and one in past should leave list with only one entry
+        """
+        old_ballot = Ballot(ballot_title="Old", pub_date=timezone.now() - datetime.timedelta(days=2),
+                            due_date=timezone.now() - datetime.timedelta(days=1))
+        new_ballot = Ballot(ballot_title="New", pub_date=timezone.now() + datetime.timedelta(days=1))
+        pub_ballot = Ballot(ballot_title="New", pub_date=timezone.now())
+        old_ballot.save()
+        new_ballot.save()
+        pub_ballot.save()
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        self.client.force_login(admin)
+        response = self.client.get('/ballot-admin/published')
+        self.assertEqual(len(response.context['ballots']), 1)
 
 class BallotAddTests(TestCase):
     def setUp(self):
@@ -468,6 +571,24 @@ class AddChoiceTests(TestCase):
         url = reverse('ballots:choices', kwargs={'pk': old_question.pk})
         response = self.client.get(url)
         self.assertRedirects(response, '/ballot-admin')
+    """
+    end url tests
+    """
+
+class BallotDetailTests(TestCase):
+    def setUp(self):
+        self.ballot = Ballot.objects.create(ballot_title="Test")
+        self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
+                                        password='password123', email='JohnSmith@gmail.com')
+        self.user.save
+
+    """
+    edit choice url tests
+    """
+    def test_detail_url_exists(self):
+        url = reverse('ballots:detail', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 404)
     """
     end url tests
     """

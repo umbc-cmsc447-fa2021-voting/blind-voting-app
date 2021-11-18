@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import UpdateView, CreateView, ListView, FormView
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import SingleObjectMixin, DetailView
 from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 # Create your views here.
@@ -77,11 +77,21 @@ class PublishedBallotsView(UserAccessMixin, ListView):
     permission_required = 'ballot.change_ballot'
 
     model = Ballot
-    template_name = "ballot_admin.html"
+    template_name = "published-ballots.html"
     context_object_name = "ballots"
 
     def get_queryset(self, *args, **kwargs):
-        return Ballot.objects.filter(pub_date__lte=timezone.now())
+        return Ballot.objects.filter(pub_date__lte=timezone.now()).filter(due_date__gte=timezone.now())
+
+class PastBallotsView(UserAccessMixin, ListView):
+    permission_required = 'ballot.change_ballot'
+
+    model = Ballot
+    template_name = "past-ballots.html"
+    context_object_name = "ballots"
+
+    def get_queryset(self, *args, **kwargs):
+        return Ballot.objects.filter(due_date__lte=timezone.now())
 
 class AddBallotView(UserAccessMixin, CreateView):
     permission_required = 'ballot.change_ballot'
@@ -176,3 +186,10 @@ class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
 
     def get_success_url(self):
         return reverse('ballots:questions', kwargs={'pk': self.object.ballot.pk})
+
+class BallotDetailView(DetailView):
+    model = Ballot
+    template_name = 'ballot-detail.html'
+    context_object_name = 'ballot'
+
+
