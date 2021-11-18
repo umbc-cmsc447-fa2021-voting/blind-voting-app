@@ -16,6 +16,7 @@ class Ballot(models.Model):
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
+    # Checks if the due date is after publish date
     def clean(self):
         if self.due_date < self.pub_date:
             raise ValidationError(_('Due Date should be further in the future than Publish Date.'), code='invalid')
