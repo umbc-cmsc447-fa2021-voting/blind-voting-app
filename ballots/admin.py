@@ -7,9 +7,11 @@ admin.site.site_header = "Ballot Creation Admin"
 admin.site.site_title = "Admin Area"
 admin.site.index_title = "Welcome Admin Area"
 
+
 class BallotsAdmin(admin.ModelAdmin):
-    fieldsets = [(None, {'fields': ['ballot_title', 'ballot_description']}),
+    fieldsets = [(None, {'fields': ['ballot_title', 'ballot_description', 'district']}),
                  ('Date Information', {'fields': ['pub_date', 'due_date']}), ]
+
 
 class QuestionAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
@@ -18,12 +20,14 @@ class QuestionAdmin(admin.ModelAdmin):
         else:
             return []
 
+
 class ChoiceAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if obj:
             return ["question", "votes"]  # Once the question is chosen it cannot change
         else:
             return ["votes"]  # Makes the vote field readonly. The admins can not edit it
+
 
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Question, QuestionAdmin)
