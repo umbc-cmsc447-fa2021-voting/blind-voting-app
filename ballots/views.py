@@ -111,7 +111,7 @@ class BallotEditView(UserAccessMixin, UpdateView):
             return redirect('/ballot-admin')
         return super().get(request, *args, **kwargs)
 
-class AddQuestionView(UserAccessMixin, FormView):
+class AddQuestionView(UserAccessMixin, SingleObjectMixin, FormView):
     permission_required = 'ballot.change_ballot'
 
     model = Question
@@ -119,6 +119,8 @@ class AddQuestionView(UserAccessMixin, FormView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object(queryset=Ballot.objects.all())
+        if (self.object.pub_date <= timezone.now()):
+            return redirect('/ballot-admin')
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -142,7 +144,7 @@ class AddQuestionView(UserAccessMixin, FormView):
         return reverse('ballots:edit', kwargs={'pk': self.object.pk})
 
 
-class AddChoiceView(UserAccessMixin, FormView):
+class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
     permission_required = 'ballot.change_ballot'
 
     model = Choice
@@ -150,6 +152,8 @@ class AddChoiceView(UserAccessMixin, FormView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object(queryset=Question.objects.all())
+        if (self.object.ballot.pub_date <= timezone.now()):
+            return redirect('/ballot-admin')
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):

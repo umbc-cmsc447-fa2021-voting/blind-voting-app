@@ -12,5 +12,5 @@ urlpatterns = [
     path('add/', AddBallotView.as_view(), name='add'),
     path('<int:pk>/edit', BallotEditView.as_view(), name='edit'),
     path('<int:pk>/questions/', AddQuestionView.as_view(), name='questions'),
-    path('<int:pk>/choices', AddChoiceView.as_view(), name='choices'),
+    path('<int:pk>/choices/', AddChoiceView.as_view(), name='choices'),
 ]
