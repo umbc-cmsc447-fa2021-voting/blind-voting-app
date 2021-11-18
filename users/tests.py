@@ -133,7 +133,7 @@ class PasswordResetFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/users/reset/{}/set-password/'.format(uid))
 
-class NewAccountTests(TestCase):
+class AccountTests(TestCase):
     user = None
 
     def setUp(self):
@@ -147,3 +147,8 @@ class NewAccountTests(TestCase):
         self.assertGreater(len(mail.outbox), 0)
         reset_emails = [email for email in mail.outbox if email.subject == 'Blind Voting App - Account Created' and self.user.username in email.body]
         self.assertEqual(len(reset_emails), 1)
+
+    def test_user_delete_sends_email(self):
+        self.user.delete()
+        delete_emails = [email for email in mail.outbox if email.subject == 'Blind Voting App - Account Deleted' and self.user.username in email.body]
+        self.assertEqual(len(delete_emails), 1)
