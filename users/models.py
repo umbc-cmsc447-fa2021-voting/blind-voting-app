@@ -15,10 +15,16 @@ class Profile(models.Model):
     middle_name = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
 
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        if not Profile.objects.filter(user=instance).exists():
+        # User has profile data from admin -> instance.profile is not None
+        # User has no profile data -> instance.profile throws error
+        try:
+            if instance.profile is not None:
+                instance.profile.save()
+        except Profile.DoesNotExist:
             Profile.objects.create(user=instance)
 
         token = default_token_generator.make_token(user=instance)
@@ -34,9 +40,6 @@ def create_user_profile(sender, instance, created, **kwargs):
                 fail_silently=True
             )
 
-@receiver(post_save, sender=User)
-def save_user(sender, instance, **kwargs):
-    instance.profile.save()
 
 @receiver(post_delete, sender=User)
 def delete_user_profile(sender, instance, **kwargs):
