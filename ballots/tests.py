@@ -588,7 +588,7 @@ class BallotDetailTests(TestCase):
     edit choice url tests
     """
     def test_detail_url_exists(self):
-        url = reverse('ballots:detail', kwargs={'pk': self.ballot.pk})
+        url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
         response = self.client.get(url)
         self.assertNotEqual(response.status_code, 404)
     """

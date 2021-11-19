@@ -12,7 +12,7 @@
             <div class="row">
                 {% for ballot in ballots %}
                 <div class="col-md-4">
-                    <a class="text-dark" href="{% url 'ballots:detail' pk=ballot.pk %}">
+                    <a class="text-dark" href="{% url 'ballots:ballot-detail' pk=ballot.pk %}">
                         <div class="card mb-4 box-shadow">
                             <div class="card-body">
                                 <h2 style="font-size:18px;font-weight:bold;min-height:42px;">
