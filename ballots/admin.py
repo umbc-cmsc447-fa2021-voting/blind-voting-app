@@ -9,7 +9,8 @@ admin.site.index_title = "Welcome Admin Area"
 
 class BallotsAdmin(admin.ModelAdmin):
     fieldsets = [(None, {'fields': ['ballot_title', 'ballot_description']}),
-                 ('Date Information', {'fields': ['pub_date', 'due_date']}), ]
+                 ('Date Information', {'fields': ['pub_date', 'due_date']}),
+                 (None, {'fields': ['district']})]
 
 admin.site.register(Choice)
 admin.site.register(Question)

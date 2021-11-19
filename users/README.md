@@ -1,6 +1,5 @@
 # Requirements
 python v3.9.1 or compatible
-Django v3.2.8 or Compatible
 
 # Installation
 Add users.apps.UsersConfig to main settings
