@@ -12,11 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='ballot',
-            name='district',
-            field=models.CharField(blank=True, max_length=50),
-        ),
         migrations.AlterField(
             model_name='ballot',
             name='ballot_description',
