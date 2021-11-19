@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Editing Questions {{ ballot.ballot_title }}{% endblock %}
+
+{% block content %}
+  <form action="" method="post" enctype="multipart/form-data">
+
+    {% for hidden_field in form.hidden_fields %}
+      {{ hidden_field.errors }}
+      {{ hidden_field }}
+    {% endfor %}
+
+    {% csrf_token %}
+
+    {{ form.management_form }}
+    {{ form.non_form_errors }}
+
+    <h3>Update Questions</h3>
+    {% for question_form in form.forms %}
+      <hr>
+      <h5>
+        {% if question_form.instance.id %}
+          Question: {{ question_form.instance.question_text }}
+          <a class="text-dark" href="{% url 'ballots:choices' pk=question_form.instance.pk %}">Add Choices</a>
+        {% else %}
+          {% if form.forms|length > 1 %}
+            Add another Question
+          {% else %}
+            Add a Question
+          {% endif %}
+        {% endif %}
+      </h5>
+      {% for hidden_field in question_form.hidden_fields %}
+        {{ hidden_field.errors }}
+      {% endfor %}
+      <table>
+        {{ question_form.as_table }}
+      </table>
+    {% endfor %}
+    <hr>
+    <p>
+      <button type="submit" value="Update Questions" class="btn btn-primary w-100 mb-3">Update Questions</button>
+      <a href="{% url 'ballots:edit' pk=ballot.pk%}" role="button" class="btn btn-secondary w-100">Cancel</a>
+    </p>
+  </form>
+
+{% endblock content %}

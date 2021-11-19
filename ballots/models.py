@@ -9,7 +9,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
-
+def now_plus_7():
+    return timezone.now() + datetime.timedelta(days=7)
 
 def now_plus_30():
     return timezone.now() + datetime.timedelta(days=30)
@@ -18,10 +19,9 @@ def now_plus_30():
 class Ballot(models.Model):
     ballot_title = models.TextField(max_length=200, default="")
     ballot_description = models.TextField(max_length=200, default="", blank=True)
-    district = models.CharField(max_length=50, blank=True)
-    pub_date = models.DateTimeField('date published', default=timezone.now)
+    pub_date = models.DateTimeField('date published', default=now_plus_7)
     due_date = models.DateTimeField('due date', default=now_plus_30)
-    slug = models.SlugField(max_length=200, default=uuid.uuid1, editable=False)
+    district = models.CharField(max_length=50, blank=True)
 
     def was_published_recently(self):
         now = timezone.now()
@@ -37,11 +37,6 @@ class Ballot(models.Model):
 
     def get_absolute_url(self):
         return reverse('ballots:edit', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(uuid.uuid1)
-        return super().save(*args, **kwargs)
 
 
 class Question(models.Model):
