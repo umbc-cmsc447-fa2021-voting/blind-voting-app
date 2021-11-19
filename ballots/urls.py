@@ -14,7 +14,7 @@ urlpatterns = [
     path('ballot-admin/past', PastBallotsView.as_view(), name='past'),
     path('add/', AddBallotView.as_view(), name='add'),
     path('<int:pk>/edit', BallotEditView.as_view(), name='edit'),
-    path('<int:pk>/detail', BallotDetailView.as_view(), name='detail'),
+    path('<int:pk>/detail', BallotDetailView.as_view(), name='ballot-detail'),
     path('<int:pk>/questions/', AddQuestionView.as_view(), name='questions'),
     path('<int:pk>/choices/', AddChoiceView.as_view(), name='choices'),
 ]

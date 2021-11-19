@@ -135,6 +135,7 @@ class ChoiceModelTests(TestCase):
         choice.votes += 1
         self.assertEqual(choice.votes, 1)
 
+
     def test_district_matches(self):
         """
         ballot_list should only contain published ballots with districts matching the user's district
@@ -670,7 +671,7 @@ class BallotDetailTests(TestCase):
     edit choice url tests
     """
     def test_detail_url_exists(self):
-        url = reverse('ballots:detail', kwargs={'pk': self.ballot.pk})
+        url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
         response = self.client.get(url)
         self.assertNotEqual(response.status_code, 404)
     """
