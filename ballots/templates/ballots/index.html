@@ -30,6 +30,7 @@
                 {% if ballot_list %}
                 {% for ballot in ballot_list %}
                 {% if ballot.due_date >= today%}
+                <!--{% if ballot.district == "All" or ballot.district == ""%}-->
                 <li>
                     {{ ballot.ballot_title }}
                     <p>
@@ -37,9 +38,10 @@
                         Start Date: {{ ballot.pub_date }} <br>
                         End Date: {{ ballot.due_date }}
                     </p>
-                    <a align='right' href="{% url 'ballots:detail' ballot.id %}" class="btn btn-primary btn-sm">Vote Now</a>
+                    <a align='right' href="{% url 'ballots:ballot-detail' ballot.id %}" class="btn btn-primary btn-sm">Vote Now</a>
                     <br><br>
                 </li>
+                <!--{% endif %}-->
                 {% endif %}
                 {% endfor %}
                 {% else %}
@@ -57,11 +59,13 @@
                 {% if ballot_list %}
                 {% for ballot in ballot_list %}
                 {% if ballot.due_date < today %}
+                <!--{% if ballot.district == "All" or ballot.district == ""%}-->
                 <li>
                     {{ ballot.ballot_title }}
                     <p>{{ ballot.ballot_description}}</p>
-                    <a class="btn btn-secondary btn-sm">Results</a>
+                    <a class="btn btn-secondary btn-sm" href="{% url 'ballots:results' ballot.id %}">Tally Votes</a>
                 </li>
+                <!--{% endif %}-->
                 {% endif %}
                 {% endfor %}
                 {% else %}

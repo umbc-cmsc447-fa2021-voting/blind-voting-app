@@ -6,13 +6,13 @@
             <h1 class="display-4">Ballots</h1>
             <p class="lead">Ballots managed under your district</p>
         </div>
+        <a class="text-dark" href="{% url 'ballots:ballot-admin'%}">Unpublished Ballots</a>
         <a class="text-dark" href="{% url 'ballots:published'%}">Published Ballots</a>
-        <a class="text-dark" href="{% url 'ballots:past'%}">Past Due Ballots</a>
         <div class="py-5">
             <div class="row">
                 {% for ballot in ballots %}
                 <div class="col-md-4">
-                    <a class="text-dark" href="{% url 'ballots:edit' pk=ballot.pk %}">
+                    <a class="text-dark" href="{% url 'ballots:ballot-detail' pk=ballot.pk %}">
                         <div class="card mb-4 box-shadow">
                             <div class="card-body">
                                 <h2 style="font-size:18px;font-weight:bold;min-height:42px;">
