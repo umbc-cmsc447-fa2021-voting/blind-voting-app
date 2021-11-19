@@ -47,6 +47,12 @@ class BallotModelTests(TestCase):
         recent_ballot = Ballot(pub_date=time)
         self.assertIs(recent_ballot.was_published_recently(), True)
 
+        """
+        makes sure the due date of the ballot is after the publish.
+        Don't want a ballot to be past due as soon as it is created.
+        Fixed by clean function in models.py
+        """
+
     def test_district_matches(self):
         """
         ballot_list should only contain published ballots with districts matching the user's district
@@ -59,10 +65,6 @@ class BallotModelTests(TestCase):
         for ballot in response.context['ballot_list']:
             self.assertEqual(response.context['user'].profile.district, ballot.district)
 
-    """
-    might want to add a test to make sure the due date of the ballot is after
-    the publish. Don't want a ballot to be past due as soon as it is created
-    """
 
 class BallotFormTests(TestCase):
     """
@@ -586,7 +588,7 @@ class BallotDetailTests(TestCase):
     edit choice url tests
     """
     def test_detail_url_exists(self):
-        url = reverse('ballots:detail', kwargs={'pk': self.ballot.pk})
+        url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
         response = self.client.get(url)
         self.assertNotEqual(response.status_code, 404)
     """

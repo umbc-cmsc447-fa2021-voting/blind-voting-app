@@ -2,9 +2,12 @@ import datetime
 import uuid
 
 from django.db import models
-from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
 from django.urls import reverse
+
 
 # Create your models here.
 def now_plus_7():
@@ -23,6 +26,10 @@ class Ballot(models.Model):
     def was_published_recently(self):
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
+
+    def clean(self):
+        if self.due_date < self.pub_date:
+            raise ValidationError(_('Due Date should be further in the future than Publish Date.'), code='invalid')
 
     def __str__(self):
         return self.ballot_title
