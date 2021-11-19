@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Editing Choices {{ question.question_text }}{% endblock %}
+
+{% block content %}
+  <form action="" method="post" enctype="multipart/form-data">
+
+    {% for hidden_field in form.hidden_fields %}
+      {{ hidden_field.errors }}
+      {{ hidden_field }}
+    {% endfor %}
+
+    {% csrf_token %}
+
+    {{ form.management_form }}
+    {{ form.non_form_errors }}
+
+    <h3>Update Choices</h3>
+    {% for choice_form in form.forms %}
+      <hr>
+      <h5>
+        {% if choice_form.instance.id %}
+          Choice: {{ choice_form.instance.choice_text }}
+        {% else %}
+          {% if form.forms|length > 1 %}
+            Add another Choice
+          {% else %}
+            Add a Choice
+          {% endif %}
+        {% endif %}
+      </h5>
+      {% for hidden_field in question_form.hidden_fields %}
+        {{ hidden_field.errors }}
+      {% endfor %}
+      <table>
+        {{ choice_form.as_table }}
+      </table>
+    {% endfor %}
+    <hr>
+    <p>
+      <button type="submit" value="Update Choices" class="btn btn-primary w-100 mb-3">Update Choices</button>
+
+    </p>
+  </form>
+
+{% endblock content %}
