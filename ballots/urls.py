@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('<int:ballot_id>/', views.detail, name='detail'),
     path('<int:question_id>/vote/', views.vote, name='vote'),
+    path('<int:ballot_id>/results/', views.results, name='results'),
     path('ballot-admin', BallotAdminView.as_view(), name='ballot-admin'),
     path('ballot-admin/published', PublishedBallotsView.as_view(), name='published'),
     path('ballot-admin/past', PastBallotsView.as_view(), name='past'),
