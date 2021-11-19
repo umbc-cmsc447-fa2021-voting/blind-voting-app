@@ -61,12 +61,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blind_voting_app.wsgi.application'
 
-<<<<<<< HEAD
-=======
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
->>>>>>> 263313c927c7ffccfce37389d030e8e1074bbc41
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
