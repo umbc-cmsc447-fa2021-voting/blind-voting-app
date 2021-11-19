@@ -7,12 +7,14 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
+
 # Create your models here.
 def now_plus_7():
     return timezone.now() + datetime.timedelta(days=7)
 
 def now_plus_30():
     return timezone.now() + datetime.timedelta(days=30)
+
 
 class Ballot(models.Model):
     ballot_title = models.TextField(max_length=200, default="")
@@ -34,7 +36,8 @@ class Ballot(models.Model):
         return self.ballot_title
 
     def get_absolute_url(self):
-        return reverse('ballots:edit', kwargs={'pk': self.pk})
+        return reverse('ballots:edit', kwargs={'slug': self.slug})
+
 
 class Question(models.Model):
     ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE)
@@ -43,13 +46,11 @@ class Question(models.Model):
     def __str__(self):
         return self.question_text
 
-    def get_absolute_url(self):
-        return reverse('ballots:questions', kwargs={'pk': self.ballot.pk})
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice_text = models.TextField(max_length=200)
-    votes = models.IntegerField(default=0)
+    choice_text = models.CharField(max_length=200)
+    votes = models.IntegerField(default=0, editable=False)
 
     def __str__(self):
         return self.choice_text
