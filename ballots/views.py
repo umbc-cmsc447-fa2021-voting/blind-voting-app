@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import UpdateView, CreateView, ListView, FormView
@@ -34,19 +35,27 @@ def detail(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list, 'current_b_id': b_id}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
-    return render(request, 'ballots/detail.html', context=context)
+    if ballot.due_date > timezone.now():
+        return render(request, 'ballots/detail.html', context=context)
+    else:
+        raise PermissionDenied
 
 
 def detail_q(request, ballot_id, question_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     try:
+
+        ballot = Ballot.objects.get(pk=ballot_id)
         current_ballot = ballot_id
         question = get_object_or_404(Question, pk=question_id)
         context = {'current_b_id': current_ballot, 'question': question}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
-    return render(request, 'ballots/vote.html', context=context)
+    if ballot.due_date > timezone.now():
+        return render(request, 'ballots/vote.html', context=context)
+    else:
+        raise PermissionDenied
 
 
 def results(request, ballot_id):
@@ -74,12 +83,17 @@ def vote(request, ballot_id, question_id):
             'error_message': "You didn't select a choice.",
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        return HttpResponseRedirect(reverse('ballots:detail', kwargs={'ballot_id': ballot_id}))
+        ballot = Ballot.objects.get(pk=ballot_id)
+        if ballot.due_date > timezone.now():
+            selected_choice.votes += 1
+            selected_choice.save()
+            # Always return an HttpResponseRedirect after successfully dealing
+            # with POST data. This prevents data from being posted twice if a
+            # user hits the Back button.
+            return HttpResponseRedirect(reverse('ballots:detail', kwargs={'ballot_id': ballot_id}))
+        else:
+            raise PermissionDenied
+
 
 class UserAccessMixin(PermissionRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
