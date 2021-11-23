@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Ballot, Question, Choice
+from .models import Ballot, Question, Choice, CastVote
 
 # Register your models here.
 
@@ -14,4 +14,5 @@ class BallotsAdmin(admin.ModelAdmin):
 
 admin.site.register(Choice)
 admin.site.register(Question)
+admin.site.register(CastVote)
 admin.site.register(Ballot, BallotsAdmin)

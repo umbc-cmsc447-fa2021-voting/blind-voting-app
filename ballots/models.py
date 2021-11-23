@@ -54,3 +54,7 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
+
+class CastVote(models.Model):
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    voter_signature = models.CharField(max_length=50)

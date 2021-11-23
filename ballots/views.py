@@ -12,7 +12,8 @@ from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 # Create your views here.
 
-from ballots.models import Ballot, Question, Choice
+from ballots.models import Ballot, Question, Choice, CastVote
+
 
 def index(request):
     if not request.user.is_authenticated:
@@ -49,6 +50,8 @@ def vote(request, question_id):
     else:
         selected_choice.votes += 1
         selected_choice.save()
+        new_vote = CastVote.objects.create(choice=selected_choice, voter_signature=request.user.profile.sign)
+        new_vote.save()
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
