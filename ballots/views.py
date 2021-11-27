@@ -1,7 +1,7 @@
 from django.contrib.auth.views import redirect_to_login
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_list_or_404, render, redirect
+from django.shortcuts import get_list_or_404, render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse
@@ -12,8 +12,7 @@ from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 # Create your views here.
 
-from ballots.models import Ballot, Question, Choice, CastVote
-
+from ballots.models import Ballot, Question, Choice, CastVote, VoteRecord, CastBallot
 
 
 def index(request):
@@ -28,6 +27,8 @@ def index(request):
 def detail(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
+    if VoteRecord.objects.filter(voter_signature=request.user.profile.sign).exists():
+        return redirect(reverse('ballots:index'))
     try:
         ballot = Ballot.objects.get(pk=ballot_id)
         question_list = Question.objects.filter(ballot=ballot_id)
@@ -51,11 +52,18 @@ def vote(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     # print(request.POST['choice'])
-    questions = get_list_or_404(Question, ballot=ballot_id)
-    for question in questions:
-        selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
-        new_vote = CastVote.objects.create(choice=selected_choice, voter_signature=request.user.profile.sign)
-        new_vote.save()
+    ballot = get_object_or_404(Ballot, pk=ballot_id)
+    questions = get_list_or_404(Question, ballot=ballot)
+    if questions:
+        new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=request.user.profile.sign)
+        new_record.save()
+        new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
+        new_ballot.save()
+        for question in questions:
+            if request.POST.get(question.question_text):
+                selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
+                new_vote = CastVote.objects.create(choice=selected_choice, ballot=new_ballot)
+                new_vote.save()
     return HttpResponseRedirect(reverse('ballots:index'))
 
 class UserAccessMixin(PermissionRequiredMixin):
