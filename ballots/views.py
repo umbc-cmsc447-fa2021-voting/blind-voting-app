@@ -15,6 +15,7 @@ from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 from ballots.models import Ballot, Question, Choice, CastVote
 
 
+
 def index(request):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
@@ -22,6 +23,7 @@ def index(request):
     ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district).order_by('due_date')
     context = {"ballot_list": ballot_list, "today": today}
     return render(request, 'ballots/index.html', context=context)
+
 
 def detail(request, ballot_id):
     if not request.user.is_authenticated:
@@ -33,6 +35,17 @@ def detail(request, ballot_id):
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
     return render(request, 'ballots/detail.html', context=context)
+
+
+def results(request, ballot_id):
+    try:
+        ballot = Ballot.objects.get(pk=ballot_id)
+        question_list = Question.objects.filter(ballot=ballot_id)
+        context = {'ballot': ballot, 'question_list': question_list}
+    except Ballot.DoesNotExist:
+        raise Http404("Ballot does not exist")
+    return render(request, 'ballots/results.html', context=context)
+
 
 def vote(request, question_id):
     if not request.user.is_authenticated:
