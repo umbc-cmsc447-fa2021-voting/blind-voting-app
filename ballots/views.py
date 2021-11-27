@@ -1,7 +1,7 @@
 from django.contrib.auth.views import redirect_to_login
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import get_list_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse
@@ -20,7 +20,7 @@ def index(request):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     today = timezone.now()
-    ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district).order_by('due_date')
+    ballot_list = Ballot.objects.all()
     context = {"ballot_list": ballot_list, "today": today}
     return render(request, 'ballots/index.html', context=context)
 
@@ -47,28 +47,16 @@ def results(request, ballot_id):
     return render(request, 'ballots/results.html', context=context)
 
 
-def vote(request, question_id):
+def vote(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     # print(request.POST['choice'])
-    question = get_object_or_404(Question, pk=question_id)
-    try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'ballots/detail.html', {
-            'question': question,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        selected_choice.votes += 1
-        selected_choice.save()
+    questions = get_list_or_404(Question, ballot=ballot_id)
+    for question in questions:
+        selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
         new_vote = CastVote.objects.create(choice=selected_choice, voter_signature=request.user.profile.sign)
         new_vote.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        return HttpResponseRedirect(reverse('ballots:index'))
+    return HttpResponseRedirect(reverse('ballots:index'))
 
 class UserAccessMixin(PermissionRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
