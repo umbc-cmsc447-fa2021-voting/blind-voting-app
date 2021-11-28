@@ -33,3 +33,4 @@ class ChoiceAdmin(admin.ModelAdmin):
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Ballot, BallotsAdmin)
+admin.site.register(VoteRecord)

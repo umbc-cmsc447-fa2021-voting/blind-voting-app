@@ -19,7 +19,12 @@ def index(request):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     today = timezone.now()
-    ballot_list = Ballot.objects.all()
+    vote_records = VoteRecord.objects.filter(voter_signature__exact=request.user.profile.sign)
+    ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
+        .order_by('due_date')
+    for ballot in ballot_list:
+        if vote_records and vote_records.get(assoc_ballot=ballot.pk):
+            ballot_list = ballot_list.exclude(id=ballot.id)
     context = {"ballot_list": ballot_list, "today": today}
     return render(request, 'ballots/index.html', context=context)
 
@@ -51,6 +56,8 @@ def results(request, ballot_id):
 def vote(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
+    if VoteRecord.objects.filter(voter_signature=request.user.profile.sign).exists():
+        return redirect(reverse('ballots:index'))
     # print(request.POST['choice'])
     ballot = get_object_or_404(Ballot, pk=ballot_id)
     questions = get_list_or_404(Question, ballot=ballot)
