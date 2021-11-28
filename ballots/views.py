@@ -20,12 +20,14 @@ def index(request):
         return redirect('/users/login/')
     today = timezone.now()
     vote_records = VoteRecord.objects.filter(voter_signature__exact=request.user.profile.sign)
+    finished_ballot_ids = []
+    for record in vote_records:
+        finished_ballot_ids.append(record.assoc_ballot.id)
     ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
-        .order_by('due_date')
-    for ballot in ballot_list:
-        if vote_records and vote_records.get(assoc_ballot=ballot.pk):
-            ballot_list = ballot_list.exclude(id=ballot.id)
-    context = {"ballot_list": ballot_list, "today": today}
+        .exclude(id__in=finished_ballot_ids).order_by('due_date')
+    finished_ballots = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
+        .filter(id__in=finished_ballot_ids).order_by('due_date')
+    context = {"ballot_list": ballot_list, "finished_ballots": finished_ballots, "today": today}
     return render(request, 'ballots/index.html', context=context)
 
 

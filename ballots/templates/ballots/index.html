@@ -49,6 +49,28 @@
         </p>
         <div class="text-center">
             <div class="card-body">
+                <h1>Completed Ballots</h1>
+            </div>
+        </div>
+        <p>
+            <ol>
+                {% if finished_ballots %}
+                {% for ballot in finished_ballots %}
+                {% if ballot.due_date >= today %}
+                <li>
+                    {{ ballot.ballot_title }}
+                    <p>{{ ballot.ballot_description}}</p>
+                </li>
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <p>No completed ballots</p>
+                {% endif %}
+            </ol>
+        </p>
+        </p>
+        <div class="text-center">
+            <div class="card-body">
                 <h1>Ballots Past Due Date</h1>
             </div>
         </div>
