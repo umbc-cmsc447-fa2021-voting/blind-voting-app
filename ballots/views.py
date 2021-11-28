@@ -42,6 +42,9 @@ def detail(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
+    if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
+            or ballot.district.lower() != request.user.profile.district.lower():
+        return redirect(reverse('ballots:index'))
     return render(request, 'ballots/detail.html', context=context)
 
 
@@ -52,6 +55,8 @@ def results(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
+    if ballot.due_date > timezone.now():
+        return redirect(reverse('ballots:index'))
     return render(request, 'ballots/results.html', context=context)
 
 
@@ -73,7 +78,11 @@ def vote(request, ballot_id):
                 selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
                 new_vote = CastVote.objects.create(choice=selected_choice, ballot=new_ballot)
                 new_vote.save()
+    if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
+            or ballot.district.lower() != request.user.profile.district.lower():
+        return redirect(reverse('ballots:index'))
     return HttpResponseRedirect(reverse('ballots:index'))
+
 
 class UserAccessMixin(PermissionRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
@@ -82,6 +91,7 @@ class UserAccessMixin(PermissionRequiredMixin):
         if not self.has_permission():
             return redirect(reverse('ballots:index'))
         return super(UserAccessMixin, self).dispatch(request, *args, **kwargs)
+
 
 class BallotAdminView(UserAccessMixin, ListView):
     raise_exception = False
@@ -94,6 +104,7 @@ class BallotAdminView(UserAccessMixin, ListView):
     def get_queryset(self, *args, **kwargs):
         return Ballot.objects.filter(pub_date__gte=timezone.now())
 
+
 class PublishedBallotsView(UserAccessMixin, ListView):
     permission_required = 'ballot.change_ballot'
 
@@ -103,6 +114,7 @@ class PublishedBallotsView(UserAccessMixin, ListView):
 
     def get_queryset(self, *args, **kwargs):
         return Ballot.objects.filter(pub_date__lte=timezone.now()).filter(due_date__gte=timezone.now())
+
 
 class PastBallotsView(UserAccessMixin, ListView):
     permission_required = 'ballot.change_ballot'
@@ -114,6 +126,7 @@ class PastBallotsView(UserAccessMixin, ListView):
     def get_queryset(self, *args, **kwargs):
         return Ballot.objects.filter(due_date__lte=timezone.now())
 
+
 class AddBallotView(UserAccessMixin, CreateView):
     permission_required = 'ballot.change_ballot'
 
@@ -124,6 +137,7 @@ class AddBallotView(UserAccessMixin, CreateView):
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
+
 
 class BallotEditView(UserAccessMixin, UpdateView):
     permission_required = 'ballot.change_ballot'
@@ -141,6 +155,7 @@ class BallotEditView(UserAccessMixin, UpdateView):
         if(self.get_object().pub_date <= timezone.now()):
             return redirect('/ballot-admin')
         return super().get(request, *args, **kwargs)
+
 
 class AddQuestionView(UserAccessMixin, SingleObjectMixin, FormView):
     permission_required = 'ballot.change_ballot'
@@ -207,6 +222,7 @@ class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
 
     def get_success_url(self):
         return reverse('ballots:questions', kwargs={'pk': self.object.ballot.pk})
+
 
 class BallotDetailView(DetailView):
     model = Ballot
