@@ -12,6 +12,9 @@
     <nav class="navbar navbar-dark bg-primary mb-4">
       <div class="container">
         <a class="navbar-brand" href="/">Team-4 Voting</a>
+        {% if request.user.is_superuser %}
+        <a class="navbar-brand" href="/ballot-admin">Modify Ballots</a>
+        {% endif %}
         <a class="navbar-brand" href="/admin/">{{request.user.username}}</a>
       </div>
     </nav>
@@ -27,7 +30,7 @@
         <p>
             Ballots listed by closest to deadline:
             <ol>
-                {% if ballot_list %}
+                {% if ballot_list%}
                 {% for ballot in ballot_list %}
                 {% if ballot.due_date >= today%}
                 <li>
@@ -37,7 +40,7 @@
                         Start Date: {{ ballot.pub_date }} <br>
                         End Date: {{ ballot.due_date }}
                     </p>
-                    <a align='right' href="{% url 'ballots:detail' ballot.id %}" class="btn btn-primary btn-sm">Vote Now</a>
+                    <a href="{% url 'ballots:detail' ballot.id %}" class="btn btn-primary btn-sm">Vote Now</a>
                     <br><br>
                 </li>
                 {% endif %}
@@ -84,6 +87,7 @@
                     <p>{{ ballot.ballot_description}}</p>
                     <a class="btn btn-secondary btn-sm" href="{% url 'ballots:results' ballot.id %}">Tally Votes</a>
                 </li>
+                <br>
                 {% endif %}
                 {% endfor %}
                 {% else %}

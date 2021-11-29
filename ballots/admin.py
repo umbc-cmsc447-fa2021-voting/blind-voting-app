@@ -17,7 +17,7 @@ class BallotsAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ["ballot"]  # Once the ballot is chosen it cannot be change
+            return ["ballot", "question_text"]  # Once the ballot is chosen it cannot be change
         else:
             return []
 
@@ -25,7 +25,7 @@ class QuestionAdmin(admin.ModelAdmin):
 class ChoiceAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ["question", "votes"]  # Once the question is chosen it cannot change
+            return ["question", "choice_text", "votes"]  # Once the question is chosen it cannot change
         else:
             return ["votes"]  # Makes the vote field readonly. The admins can not edit it
 

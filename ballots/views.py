@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_list_or_404, render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import UpdateView, CreateView, ListView, FormView
@@ -39,7 +40,25 @@ def detail(request, ballot_id):
     try:
         ballot = Ballot.objects.get(pk=ballot_id)
         question_list = Question.objects.filter(ballot=ballot_id)
-        context = {'ballot': ballot, 'question_list': question_list}
+        b_id = ballot_id
+        context = {'ballot': ballot, 'question_list': question_list, 'current_b_id': b_id}
+    except Ballot.DoesNotExist:
+        raise Http404("Ballot does not exist")
+    if ballot.due_date > timezone.now():
+        return render(request, 'ballots/detail.html', context=context)
+    else:
+        raise PermissionDenied
+
+
+def detail_q(request, ballot_id, question_id):
+    if not request.user.is_authenticated:
+        return redirect('/users/login/')
+    try:
+
+        ballot = Ballot.objects.get(pk=ballot_id)
+        current_ballot = ballot_id
+        question = get_object_or_404(Question, pk=question_id)
+        context = {'current_b_id': current_ballot, 'question': question}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
     if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
@@ -58,6 +77,7 @@ def results(request, ballot_id):
     if ballot.due_date > timezone.now():
         return redirect(reverse('ballots:index'))
     return render(request, 'ballots/results.html', context=context)
+
 
 
 def vote(request, ballot_id):

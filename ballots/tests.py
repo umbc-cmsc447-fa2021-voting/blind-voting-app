@@ -145,7 +145,6 @@ class ChoiceModelTests(TestCase):
         choice.votes += 1
         self.assertEqual(choice.votes, 1)
 
-
     def test_district_matches(self):
         """
         ballot_list should only contain published ballots with districts matching the user's district
