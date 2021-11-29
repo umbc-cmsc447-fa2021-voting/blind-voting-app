@@ -21,21 +21,12 @@
 
 
     {% for question in question_list %}
-    <p>{{question.question_text}}</p>
-    <form action="{% url 'ballots:vote' question.id %}" method="post">
-        {% csrf_token %}
-        {% for choice in question.choice_set.all %}
-        <div class="form-check">
-            <input type="radio" name="choice" class="form-check-input" id="choice{{ forloop.counter }}"
-                value="{{ choice.id }}" />
-            <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
-        </div>
-        {% endfor %}
-        <input type="submit" value="Vote" class="btn btn-success btn-lg mt-4" />
-        <p>
-            <!--Spacing Between Questions-->
-        </p>
-    </form>
+    <p>
+        {{question.question_text}}
+        <br>
+        <a href="{% url 'ballots:detail-q' current_b_id question.id %}" class="btn btn-success btn-lg mt-4">View Question Choices</a>
+    </p>
+    <br>
     {% endfor %}
     <a href="{% url 'ballots:index' %}" class="btn btn-primary btn-lg mt-4">Finish Ballot</a>
 

@@ -12,8 +12,17 @@
 </head>
 
 <body>
+    <!--NavBar-->
+    <nav class="navbar navbar-dark bg-primary mb-4">
+      <div class="container">
+        <a class="navbar-brand" href="/">Team-4 Voting</a>
+        <a class="navbar-brand" href="/admin/">{{request.user.username}}</a>
+      </div>
+    </nav>
+
     {% block content %}
     {% endblock %}
+
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
         integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
     </script>
