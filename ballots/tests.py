@@ -85,6 +85,16 @@ class QuestionModelTests(TestCase):
 
 
 class ChoiceModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
+                                        password='password123', email='JohnSmith@gmail.com')
+        self.user.save
+        profile = self.user.profile
+        profile.ssn = "555-55-5555"
+        profile.district = "BaltimoreCounty"
+        profile.middle_name = "Jack"
+        self.ballot = Ballot.objects.create(ballot_title="Test", district="BaltimoreCounty", pub_date=timezone.now())
+
     def test_choice_model_str(self):
         """
         Making sure the return str for choice text is the same str given
