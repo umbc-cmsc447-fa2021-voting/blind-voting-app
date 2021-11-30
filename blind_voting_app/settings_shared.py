@@ -14,6 +14,17 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+try:
+    from .settings_shared import *
+except ImportError:
+    pass
+
+SECRET_KEY = 'my1q)xr9)v7j$ty_113li8e*@6txxll&bn@+=8$po1-qlarq-v'
+
+DEBUG = False
+
+ALLOWED_HOSTS = []
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
