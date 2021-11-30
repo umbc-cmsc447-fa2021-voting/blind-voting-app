@@ -4,7 +4,7 @@ from django.test import Client, TestCase, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Ballot, Question, Choice
+from .models import Ballot, Question, Choice, VoteRecord
 from users.models import Profile
 from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
@@ -145,18 +145,138 @@ class ChoiceModelTests(TestCase):
         choice.votes += 1
         self.assertEqual(choice.votes, 1)
 
-    def test_district_matches(self):
+class IndexTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
+                                        password='password123', email='JohnSmith@gmail.com')
+        self.user.save
+        profile = self.user.profile
+        profile.ssn = "555-55-5555"
+        profile.district = "BaltimoreCounty"
+        profile.middle_name = "Jack"
+        profile.save()
+        self.ballot = Ballot.objects.create(ballot_title="Test", district="BaltimoreCounty", pub_date=timezone.now())
+        self.ballot.save()
+
+    """index url tests"""
+    def test_index_url_exists(self):
+        """
+        if url exists shouldn't 404, status code should be 302 due to redirect
+        """
+        response = self.client.get('/')
+        self.assertNotEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
+
+    def test_index_url_reverse(self):
+        """
+        reverse match should exist
+        if url exists shouldn't 404, status code should be 302 due to redirect
+        """
+        response = self.client.get(reverse('ballots:index'))
+        self.assertNotEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
+    def test_index_anon_redirect(self):
+        """
+        if no user is logged in redirects to login page
+        """
+        response = self.client.get('/')
+        self.assertRedirects(response, '/users/login/')
+    def test_index_login(self):
+        """if user is logged in displays ballot index page"""
+        self.client.force_login(self.user)
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+    """end url tests"""
+
+    """index queryset tests"""
+    def test_district_list(self):
         """
         ballot_list should only contain published ballots with districts matching the user's district
         """
-        wrong_ballot = Ballot(ballot_title="Wrong", district="MontgomeryCounty", pub_date=timezone.now())
-        wrong_ballot.save()
-        self.ballot.save()
+        yesterday = timezone.now() - datetime.timedelta(days=1)
         self.client.force_login(self.user)
         response = self.client.get(reverse('ballots:index'))
+
+        """list size should be one"""
+        self.assertEqual(response.context['ballot_list'].count(), 1)
+
+        wrong_ballot = Ballot(ballot_title="Wrong", district="MontgomeryCounty", pub_date=yesterday)
+        wrong_ballot.save()
+        response = self.client.get(reverse('ballots:index'))
+        """list size should not change"""
+        self.assertEqual(response.context['ballot_list'].count(), 1)
+
+        right_ballot = Ballot(ballot_title="Wrong", district=self.user.profile.district, pub_date=yesterday)
+        right_ballot.save()
+        self.ballot.save()
+        response = self.client.get(reverse('ballots:index'))
+        """list size should be two"""
+        self.assertEqual(response.context['ballot_list'].count(), 2)
         for ballot in response.context['ballot_list']:
+            """all ballot districts should match user district"""
             self.assertEqual(response.context['user'].profile.district, ballot.district)
 
+    def test_date_list(self):
+        """
+        ballot_list should only contain published ballots with districts matching the user's district
+        """
+        tomorrow = timezone.now() + datetime.timedelta(days=1)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('ballots:index'))
+
+        """list size should be one"""
+        self.assertEqual(response.context['ballot_list'].count(), 1)
+
+        wrong_ballot = Ballot(ballot_title="Wrong", district=self.user.profile.district, pub_date=tomorrow)
+        wrong_ballot.save()
+        response = self.client.get(reverse('ballots:index'))
+        """list size should not change"""
+        self.assertEqual(response.context['ballot_list'].count(), 1)
+
+        right_ballot = Ballot(ballot_title="Wrong", district=self.user.profile.district, pub_date=timezone.now())
+        right_ballot.save()
+        self.ballot.save()
+        response = self.client.get(reverse('ballots:index'))
+        """list size should be two"""
+        self.assertEqual(response.context['ballot_list'].count(), 2)
+        for ballot in response.context['ballot_list']:
+            """all ballot districts should match user district"""
+            self.assertLessEqual(ballot.pub_date, timezone.now())
+
+    def test_finished_list(self):
+        """
+        ballot_list should only contain ballots user has not voted on
+        """
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('ballots:index'))
+
+        """list size should be one"""
+        self.assertEqual(response.context['ballot_list'].count(), 1)
+        """finished list size should be zero"""
+        self.assertEqual(response.context['finished_ballots'].count(), 0)
+
+        finished_ballot = Ballot(ballot_title="Wrong", district=self.user.profile.district, pub_date=timezone.now())
+        finished_ballot.save()
+        response = self.client.get(reverse('ballots:index'))
+        """list size should not change"""
+        self.assertEqual(response.context['ballot_list'].count(), 2)
+        """finished list size should not change"""
+        self.assertEqual(response.context['finished_ballots'].count(), 0)
+
+        vote_record = VoteRecord(voter_signature=self.user.profile.sign, assoc_ballot=finished_ballot)
+        vote_record.save()
+        response = self.client.get(reverse('ballots:index'))
+        """list size should be one"""
+        self.assertEqual(response.context['ballot_list'].count(), 1)
+        """finished list size should be one"""
+        self.assertEqual(response.context['finished_ballots'].count(), 1)
+        for ballot in response.context['ballot_list']:
+            """only test ballot should be in this list"""
+            self.assertEqual(ballot.ballot_title, "Test")
+        for ballot in response.context['finished_ballots']:
+            """only wrong ballot should be in this list"""
+            self.assertEqual(ballot.ballot_title, "Wrong")
+    """end queryset tests"""
 
 class BallotFormTests(TestCase):
     """

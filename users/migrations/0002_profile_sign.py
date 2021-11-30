@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profile',
             name='sign',
-            field=models.CharField(default=users.models.createSignature, max_length=50, unique=True),
+            field=models.CharField(max_length=50, null=True, unique=True),
         ),
     ]
