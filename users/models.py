@@ -2,11 +2,15 @@ from django.db import models
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
+from django.utils.crypto import get_random_string
 from django.utils.http import urlsafe_base64_encode
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+
+def createSignature():
+    return get_random_string(50)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -14,6 +18,14 @@ class Profile(models.Model):
     ssn = models.CharField(max_length=20, blank=True)
     middle_name = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
+    sign = models.CharField(max_length=50, null=True, unique=True)
+
+    def save(self, *args, **kwargs):
+        if not self.sign:
+            self.sign = createSignature()
+            while Profile.objects.filter(sign=self.sign).exists():
+                self.sign = createSignature()
+        super(Profile, self).save(*args, **kwargs)
 
 
 @receiver(post_save, sender=User)

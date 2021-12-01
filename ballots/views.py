@@ -1,7 +1,7 @@
 from django.contrib.auth.views import redirect_to_login
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import get_list_or_404, render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
@@ -13,15 +13,22 @@ from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
 # Create your views here.
 
-from ballots.models import Ballot, Question, Choice
+from ballots.models import Ballot, Question, Choice, CastVote, VoteRecord, CastBallot
 
 
 def index(request):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     today = timezone.now()
-    ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district).order_by('due_date')
-    context = {"ballot_list": ballot_list, "today": today}
+    vote_records = VoteRecord.objects.filter(voter_signature__exact=request.user.profile.sign)
+    finished_ballot_ids = []
+    for record in vote_records:
+        finished_ballot_ids.append(record.assoc_ballot.id)
+    ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
+        .exclude(id__in=finished_ballot_ids).order_by('due_date')
+    finished_ballots = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
+        .filter(id__in=finished_ballot_ids).order_by('due_date')
+    context = {"ballot_list": ballot_list, "finished_ballots": finished_ballots, "today": today}
     return render(request, 'ballots/index.html', context=context)
 
 
@@ -35,7 +42,9 @@ def detail(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list, 'current_b_id': b_id}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
-    if ballot.due_date > timezone.now():
+    if ballot.due_date > timezone.now() and ballot.pub_date < timezone.now()\
+            and ballot.district.lower() == request.user.profile.district.lower() and not\
+            VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
         return render(request, 'ballots/detail.html', context=context)
     else:
         raise PermissionDenied
@@ -52,10 +61,10 @@ def detail_q(request, ballot_id, question_id):
         context = {'current_b_id': current_ballot, 'question': question}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
-    if ballot.due_date > timezone.now():
-        return render(request, 'ballots/vote.html', context=context)
-    else:
-        raise PermissionDenied
+    if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
+            or ballot.district.lower() != request.user.profile.district.lower():
+        return redirect(reverse('ballots:index'))
+    return render(request, 'ballots/detail.html', context=context)
 
 
 def results(request, ballot_id):
@@ -65,34 +74,33 @@ def results(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
+    if ballot.due_date > timezone.now():
+        return redirect(reverse('ballots:index'))
     return render(request, 'ballots/results.html', context=context)
 
 
-def vote(request, ballot_id, question_id):
+
+def vote(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
     # print(request.POST['choice'])
-    question = get_object_or_404(Question, pk=question_id)
-    try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'ballots/vote.html', {
-            'question': question,
-            'current_b_id': ballot_id,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        ballot = Ballot.objects.get(pk=ballot_id)
-        if ballot.due_date > timezone.now():
-            selected_choice.votes += 1
-            selected_choice.save()
-            # Always return an HttpResponseRedirect after successfully dealing
-            # with POST data. This prevents data from being posted twice if a
-            # user hits the Back button.
-            return HttpResponseRedirect(reverse('ballots:detail', kwargs={'ballot_id': ballot_id}))
-        else:
-            raise PermissionDenied
+    ballot = get_object_or_404(Ballot, pk=ballot_id)
+    questions = get_list_or_404(Question, ballot=ballot)
+    if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
+            or ballot.district.lower() != request.user.profile.district.lower()\
+            or VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
+        return redirect(reverse('ballots:index'))
+    if questions:
+        new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=request.user.profile.sign)
+        new_record.save()
+        new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
+        new_ballot.save()
+        for question in questions:
+            if request.POST.get(question.question_text):
+                selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
+                new_vote = CastVote.objects.create(choice=selected_choice, ballot=new_ballot)
+                new_vote.save()
+    return HttpResponseRedirect(reverse('ballots:index'))
 
 
 class UserAccessMixin(PermissionRequiredMixin):
@@ -102,6 +110,7 @@ class UserAccessMixin(PermissionRequiredMixin):
         if not self.has_permission():
             return redirect(reverse('ballots:index'))
         return super(UserAccessMixin, self).dispatch(request, *args, **kwargs)
+
 
 class BallotAdminView(UserAccessMixin, ListView):
     raise_exception = False
@@ -114,6 +123,7 @@ class BallotAdminView(UserAccessMixin, ListView):
     def get_queryset(self, *args, **kwargs):
         return Ballot.objects.filter(pub_date__gte=timezone.now())
 
+
 class PublishedBallotsView(UserAccessMixin, ListView):
     permission_required = 'ballot.change_ballot'
 
@@ -123,6 +133,7 @@ class PublishedBallotsView(UserAccessMixin, ListView):
 
     def get_queryset(self, *args, **kwargs):
         return Ballot.objects.filter(pub_date__lte=timezone.now()).filter(due_date__gte=timezone.now())
+
 
 class PastBallotsView(UserAccessMixin, ListView):
     permission_required = 'ballot.change_ballot'
@@ -134,6 +145,7 @@ class PastBallotsView(UserAccessMixin, ListView):
     def get_queryset(self, *args, **kwargs):
         return Ballot.objects.filter(due_date__lte=timezone.now())
 
+
 class AddBallotView(UserAccessMixin, CreateView):
     permission_required = 'ballot.change_ballot'
 
@@ -144,6 +156,7 @@ class AddBallotView(UserAccessMixin, CreateView):
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
+
 
 class BallotEditView(UserAccessMixin, UpdateView):
     permission_required = 'ballot.change_ballot'
@@ -161,6 +174,7 @@ class BallotEditView(UserAccessMixin, UpdateView):
         if(self.get_object().pub_date <= timezone.now()):
             return redirect('/ballot-admin')
         return super().get(request, *args, **kwargs)
+
 
 class AddQuestionView(UserAccessMixin, SingleObjectMixin, FormView):
     permission_required = 'ballot.change_ballot'
@@ -227,6 +241,7 @@ class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
 
     def get_success_url(self):
         return reverse('ballots:questions', kwargs={'pk': self.object.ballot.pk})
+
 
 class BallotDetailView(DetailView):
     model = Ballot

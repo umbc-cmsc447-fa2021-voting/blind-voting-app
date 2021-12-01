@@ -6,7 +6,7 @@ from .models import Profile
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    fieldsets = [(None, {'fields': ['middle_name', 'ssn', 'district', 'birth_date']})]
+    fieldsets = [(None, {'fields': ['middle_name', 'ssn', 'district', 'birth_date', 'sign']})]
     verbose_name = 'profile'
     verbose_name_plural = 'profiles'
 
