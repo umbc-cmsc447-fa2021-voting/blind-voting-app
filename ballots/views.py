@@ -91,14 +91,17 @@ def vote(request, ballot_id):
             or VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
         return redirect(reverse('ballots:index'))
     if questions:
-        new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=request.user.profile.sign)
-        new_record.save()
-        new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
-        new_ballot.save()
+        selected_choices = []
         for question in questions:
             if request.POST.get(question.question_text):
-                selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
-                new_vote = CastVote.objects.create(choice=selected_choice, ballot=new_ballot)
+                selected_choices.append(question.choice_set.get(pk=request.POST[question.question_text]))
+        if len(selected_choices) > 0:
+            new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=request.user.profile.sign)
+            new_record.save()
+            new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
+            new_ballot.save()
+            for choice in selected_choices:
+                new_vote = CastVote.objects.create(choice=choice, ballot=new_ballot)
                 new_vote.save()
     return HttpResponseRedirect(reverse('ballots:index'))
 
