@@ -83,11 +83,13 @@ def results(request, ballot_id):
 def vote(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
-    if VoteRecord.objects.filter(voter_signature=request.user.profile.sign).exists():
-        return redirect(reverse('ballots:index'))
     # print(request.POST['choice'])
     ballot = get_object_or_404(Ballot, pk=ballot_id)
     questions = get_list_or_404(Question, ballot=ballot)
+    if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
+            or ballot.district.lower() != request.user.profile.district.lower()\
+            or VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
+        return redirect(reverse('ballots:index'))
     if questions:
         new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=request.user.profile.sign)
         new_record.save()
@@ -98,9 +100,6 @@ def vote(request, ballot_id):
                 selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
                 new_vote = CastVote.objects.create(choice=selected_choice, ballot=new_ballot)
                 new_vote.save()
-    if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
-            or ballot.district.lower() != request.user.profile.district.lower():
-        return redirect(reverse('ballots:index'))
     return HttpResponseRedirect(reverse('ballots:index'))
 
 
