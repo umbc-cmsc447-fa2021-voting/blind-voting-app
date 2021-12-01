@@ -35,8 +35,6 @@ def index(request):
 def detail(request, ballot_id):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
-    if VoteRecord.objects.filter(voter_signature=request.user.profile.sign).exists():
-        return redirect(reverse('ballots:index'))
     try:
         ballot = Ballot.objects.get(pk=ballot_id)
         question_list = Question.objects.filter(ballot=ballot_id)
@@ -44,7 +42,9 @@ def detail(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list, 'current_b_id': b_id}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
-    if ballot.due_date > timezone.now():
+    if ballot.due_date > timezone.now() and ballot.pub_date < timezone.now()\
+            and ballot.district.lower() == request.user.profile.district.lower() and not\
+            VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
         return render(request, 'ballots/detail.html', context=context)
     else:
         raise PermissionDenied
