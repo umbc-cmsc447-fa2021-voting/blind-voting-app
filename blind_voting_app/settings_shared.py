@@ -13,18 +13,6 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-try:
-    from .settings_shared import *
-except ImportError:
-    pass
-
-SECRET_KEY = 'my1q)xr9)v7j$ty_113li8e*@6txxll&bn@+=8$po1-qlarq-v'
-
-DEBUG = False
-
-ALLOWED_HOSTS = []
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -54,10 +42,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'blind_voting_app.urls'
 
+SETTINGS_PATH = os.path.dirname('templates/users')
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(SETTINGS_PATH, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
