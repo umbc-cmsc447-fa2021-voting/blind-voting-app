@@ -202,15 +202,31 @@ class PastBallotsTests(TestCase):
         published should only show published ballots
         adding one ballot with pub date in future and one in past should leave list with only one entry
         """
-        old_ballot = Ballot(ballot_title="Old", pub_date=timezone.now() - datetime.timedelta(days=2),
-                            due_date=timezone.now() - datetime.timedelta(days=1))
-        new_ballot = Ballot(ballot_title="New", pub_date=timezone.now() + datetime.timedelta(days=1))
-        pub_ballot = Ballot(ballot_title="New", pub_date=timezone.now())
+        old_ballot = Ballot(
+            ballot_title="Old", 
+            pub_date=timezone.now() - datetime.timedelta(days=2),
+            due_date=timezone.now() - datetime.timedelta(days=1)
+        )
         old_ballot.save()
+
+        too_old_ballot = Ballot(
+            ballot_title="Too Old", 
+            pub_date=timezone.now() - datetime.timedelta(days=400),
+            due_date=timezone.now() - datetime.timedelta(days=390)
+        )
+        too_old_ballot.save()
+
+        new_ballot = Ballot(
+            ballot_title="New", 
+            pub_date=timezone.now() + datetime.timedelta(days=1)
+        )
         new_ballot.save()
+        
+        pub_ballot = Ballot(ballot_title="New", pub_date=timezone.now())
         pub_ballot.save()
+
         admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
-        self.client.force_login(admin)
+
         self.client.force_login(admin)
         response = self.client.get('/ballot-admin/published')
         self.assertEqual(len(response.context['ballots']), 1)

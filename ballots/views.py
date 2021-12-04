@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.views import redirect_to_login
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -143,8 +145,18 @@ class PastBallotsView(UserAccessMixin, ListView):
     context_object_name = "ballots"
 
     def get_queryset(self, *args, **kwargs):
-        return Ballot.objects.filter(due_date__lte=timezone.now())
+        return Ballot.objects.filter(due_date__lte=timezone.now()).filter(due_date__gte=timezone.now() - datetime.timedelta(days=365.25))
 
+
+class ArchivedBallotsView(UserAccessMixin, ListView):
+    permission_required = "ballot.change_ballot"
+
+    model = Ballot
+    template_name = "archived-ballots.html"
+    context_object_name = "ballots"
+
+    def get_queryset(self, *args, **kwargs):
+        return Ballot.objects.filter(due_date__lte=timezone.now() - datetime.timedelta(days=365.24))
 
 class AddBallotView(UserAccessMixin, CreateView):
     permission_required = 'ballot.change_ballot'
