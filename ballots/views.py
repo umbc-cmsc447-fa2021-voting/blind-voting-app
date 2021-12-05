@@ -1,4 +1,7 @@
+import datetime
+
 from django.contrib.auth.views import redirect_to_login
+from django.core.signing import Signer
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_list_or_404, render, redirect, get_object_or_404
@@ -19,8 +22,11 @@ from ballots.models import Ballot, Question, Choice, CastVote, VoteRecord, CastB
 def index(request):
     if not request.user.is_authenticated:
         return redirect('/users/login/')
+    signer = Signer()
+    sign = signer.sign(request.user.profile.sign)
+    sign = sign[51:]
     today = timezone.now()
-    vote_records = VoteRecord.objects.filter(voter_signature__exact=request.user.profile.sign)
+    vote_records = VoteRecord.objects.filter(voter_signature__exact=sign)
     finished_ballot_ids = []
     for record in vote_records:
         finished_ballot_ids.append(record.assoc_ballot.id)
@@ -42,9 +48,12 @@ def detail(request, ballot_id):
         context = {'ballot': ballot, 'question_list': question_list, 'current_b_id': b_id}
     except Ballot.DoesNotExist:
         raise Http404("Ballot does not exist")
+    signer = Signer()
+    sign = signer.sign(request.user.profile.sign)
+    sign = sign[51:]
     if ballot.due_date > timezone.now() and ballot.pub_date < timezone.now()\
             and ballot.district.lower() == request.user.profile.district.lower() and not\
-            VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
+            VoteRecord.objects.filter(voter_signature=sign).filter(assoc_ballot=ballot).exists():
         return render(request, 'ballots/detail.html', context=context)
     else:
         raise PermissionDenied
@@ -86,19 +95,28 @@ def vote(request, ballot_id):
     # print(request.POST['choice'])
     ballot = get_object_or_404(Ballot, pk=ballot_id)
     questions = get_list_or_404(Question, ballot=ballot)
+    signer = Signer()
+    sign = signer.sign(request.user.profile.sign)
+    sign = sign[51:]
     if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
             or ballot.district.lower() != request.user.profile.district.lower()\
-            or VoteRecord.objects.filter(voter_signature=request.user.profile.sign).filter(assoc_ballot=ballot).exists():
+            or VoteRecord.objects.filter(voter_signature=sign).filter(assoc_ballot=ballot).exists():
         return redirect(reverse('ballots:index'))
     if questions:
-        new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=request.user.profile.sign)
-        new_record.save()
-        new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
-        new_ballot.save()
+        selected_choices = []
         for question in questions:
             if request.POST.get(question.question_text):
-                selected_choice = question.choice_set.get(pk=request.POST[question.question_text])
-                new_vote = CastVote.objects.create(choice=selected_choice, ballot=new_ballot)
+                selected_choices.append(question.choice_set.get(pk=request.POST[question.question_text]))
+        if len(selected_choices) > 0:
+            signer = Signer()
+            sign = signer.sign(request.user.profile.sign)
+            sign = sign[51:]
+            new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=sign)
+            new_record.save()
+            new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
+            new_ballot.save()
+            for choice in selected_choices:
+                new_vote = CastVote.objects.create(choice=choice, ballot=new_ballot)
                 new_vote.save()
     return HttpResponseRedirect(reverse('ballots:index'))
 
@@ -143,8 +161,18 @@ class PastBallotsView(UserAccessMixin, ListView):
     context_object_name = "ballots"
 
     def get_queryset(self, *args, **kwargs):
-        return Ballot.objects.filter(due_date__lte=timezone.now())
+        return Ballot.objects.filter(due_date__lte=timezone.now()).filter(due_date__gte=timezone.now() - datetime.timedelta(days=365.25))
 
+
+class ArchivedBallotsView(UserAccessMixin, ListView):
+    permission_required = "ballot.change_ballot"
+
+    model = Ballot
+    template_name = "archived-ballots.html"
+    context_object_name = "ballots"
+
+    def get_queryset(self, *args, **kwargs):
+        return Ballot.objects.filter(due_date__lte=timezone.now() - datetime.timedelta(days=365.24))
 
 class AddBallotView(UserAccessMixin, CreateView):
     permission_required = 'ballot.change_ballot'

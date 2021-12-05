@@ -8,6 +8,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django_cryptography.fields import encrypt
+
 
 def createSignature():
     return get_random_string(50)
@@ -15,7 +17,7 @@ def createSignature():
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     district = models.CharField(max_length=50, blank=True)
-    ssn = models.CharField(max_length=20, blank=True)
+    ssn = encrypt(models.CharField(max_length=20, blank=True))
     middle_name = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     sign = models.CharField(max_length=50, null=True, unique=True)

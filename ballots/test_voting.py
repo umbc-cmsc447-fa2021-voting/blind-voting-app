@@ -1,10 +1,11 @@
 import datetime
 from django.contrib.auth.models import User
+from django.core.signing import Signer
 from django.test import Client, TestCase, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Ballot, Question, Choice, VoteRecord, CastBallot
+from .models import Ballot, Question, Choice, VoteRecord, CastBallot, CastVote
 from users.models import Profile
 
 class IndexTests(TestCase):
@@ -19,6 +20,9 @@ class IndexTests(TestCase):
         profile.save()
         self.ballot = Ballot.objects.create(ballot_title="Test", district="BaltimoreCounty", pub_date=timezone.now())
         self.ballot.save()
+        signer = Signer()
+        self.sign = signer.sign(self.user.profile.sign)
+        self.sign = self.sign[51:]
 
     """index url tests"""
     def test_index_url_exists(self):
@@ -124,8 +128,7 @@ class IndexTests(TestCase):
         self.assertEqual(response.context['ballot_list'].count(), 2)
         """finished list size should not change"""
         self.assertEqual(response.context['finished_ballots'].count(), 0)
-
-        vote_record = VoteRecord(voter_signature=self.user.profile.sign, assoc_ballot=finished_ballot)
+        vote_record = VoteRecord(voter_signature=self.sign, assoc_ballot=finished_ballot)
         vote_record.save()
         response = self.client.get(reverse('ballots:index'))
         """list size should be one"""
@@ -152,6 +155,9 @@ class DetailViewTests(TestCase):
         profile.save()
         self.ballot = Ballot.objects.create(ballot_title="Test", district="BaltimoreCounty", pub_date=timezone.now())
         self.ballot.save()
+        signer = Signer()
+        self.sign = signer.sign(self.user.profile.sign)
+        self.sign = self.sign[51:]
 
     """detail url tests"""
 
@@ -203,7 +209,7 @@ class DetailViewTests(TestCase):
 
     def test_detail_finished_ballot(self):
         wrong_ballot = Ballot.objects.create(ballot_title="Wrong", district="BaltimoreCounty", pub_date=timezone.now())
-        vote_record = VoteRecord.objects.create(voter_signature=self.user.profile.sign, assoc_ballot=wrong_ballot)
+        vote_record = VoteRecord.objects.create(voter_signature=self.sign, assoc_ballot=wrong_ballot)
         vote_record.save()
         self.client.force_login(self.user)
         response = self.client.get(reverse('ballots:detail', kwargs={'ballot_id': wrong_ballot.pk}))
@@ -249,6 +255,9 @@ class VoteViewTests(TestCase):
         self.question.save()
         self.choice = Choice.objects.create(choice_text="A", question=self.question)
         self.choice.save()
+        signer = Signer()
+        self.sign = signer.sign(self.user.profile.sign)
+        self.sign = self.sign[51:]
 
     """vote url tests"""
 
@@ -286,36 +295,84 @@ class VoteViewTests(TestCase):
 
     """voting behavior tests"""
     def test_vote_successful(self):
-        self.client.force_login(self.user)
-        response1 = self.client.post(reverse('ballots:detail', kwargs={'ballot_id': self.ballot.pk}),
-                                     {self.question.question_text: self.choice.pk})
-        response2 = self.client.get(reverse('ballots:vote', kwargs={'ballot_id': self.ballot.pk}))
-
-        vote_records = VoteRecord.objects.filter(voter_signature=self.user.profile.sign)
-        """Should create vote record"""
-        self.assertTrue(vote_records.exists())
+        vote_records = VoteRecord.objects.all()
+        # Should not exist yet
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
-        """Should create cast"""
+        # Should not exist yet
+        self.assertFalse(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        # should not exist yet
+        self.assertFalse(cast_votes.exists())
+
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': self.ballot.pk}),
+                                     {self.question.question_text: self.choice.pk})
+
+        vote_records = VoteRecord.objects.all()
+        #Should create vote record
+        self.assertEqual(vote_records.count(), 1)
+
+        cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
+        #Should create cast ballot
         self.assertTrue(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        #should create a cast vote
+        self.assertTrue(cast_votes.exists())
+
+    def test_vote_none_selected(self):
+        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        # Should not exist yet
+        self.assertFalse(vote_records.exists())
+
+        cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
+        # Should not exist yet
+        self.assertFalse(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        # should not exist yet
+        self.assertFalse(cast_votes.exists())
+
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': self.ballot.pk}), {})
+
+        vote_records = VoteRecord.objects.all()
+        #Should create vote record
+        self.assertEqual(vote_records.count(), 0)
+
+        cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
+        #Should create cast ballot
+        self.assertFalse(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        #should create a cast vote
+        self.assertFalse(cast_votes.exists())
 
     def test_vote_wrong_district(self):
         wrong_ballot = Ballot.objects.create(ballot_title="Wrong", district="Moco", pub_date=timezone.now())
         wrong_ballot.save()
         question1 = Question.objects.create(question_text="Q1", ballot=wrong_ballot)
         question1.save()
+        choice1 = Choice.objects.create(choice_text="A", question=question1)
+        choice1.save()
         self.client.force_login(self.user)
-        response1 = self.client.post(reverse('ballots:detail', kwargs={'ballot_id': wrong_ballot.pk}),
-                                     {self.question.question_text: self.choice.pk})
-        response2 = self.client.get(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}))
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id':wrong_ballot.pk}),
+                                    {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.user.profile.sign)
-        """Should not create vote record"""
-        self.assertFalse(vote_records.exists())
+        vote_records = VoteRecord.objects.all()
+        # Should not create vote record
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
-        """Should create cast"""
+        # Should not create cast ballot
         self.assertFalse(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        # should not create a cast vote
+        self.assertFalse(cast_votes.exists())
 
     def test_vote_not_published(self):
         tomorrow = timezone.now() + datetime.timedelta(days=1)
@@ -323,18 +380,22 @@ class VoteViewTests(TestCase):
         wrong_ballot.save()
         question1 = Question.objects.create(question_text="Q1", ballot=wrong_ballot)
         question1.save()
+        choice1 = Choice.objects.create(choice_text="A", question=question1)
+        choice1.save()
         self.client.force_login(self.user)
-        response1 = self.client.post(reverse('ballots:detail', kwargs={'ballot_id': wrong_ballot.pk}),
-                                     {self.question.question_text: self.choice.pk})
-        response2 = self.client.get(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}))
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
+                                    {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.user.profile.sign)
-        """Should not create vote record"""
-        self.assertFalse(vote_records.exists())
+        vote_records = VoteRecord.objects.all()
+        # Should not create vote record
+        self.assertEqual(vote_records.count(), 0)
 
-        cast_ballots = CastBallot.objects.filter(assoc_ballot=wrong_ballot)
-        """Should create cast"""
+        cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
+        # Should not create cast ballot
         self.assertFalse(cast_ballots.exists())
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        # should not create a cast vote
+        self.assertFalse(cast_votes.exists())
 
     def test_vote_past_due(self):
         yesterday = timezone.now() - datetime.timedelta(days=1)
@@ -342,47 +403,70 @@ class VoteViewTests(TestCase):
         wrong_ballot.save()
         question1 = Question.objects.create(question_text="Q1", ballot=wrong_ballot)
         question1.save()
+        choice1 = Choice.objects.create(choice_text="A", question=question1)
+        choice1.save()
         self.client.force_login(self.user)
-        response1 = self.client.post(reverse('ballots:detail', kwargs={'ballot_id': wrong_ballot.pk}),
-                                     {self.question.question_text: self.choice.pk})
-        response2 = self.client.get(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}))
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
+                                    {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.user.profile.sign)
-        """Should not create vote record"""
-        self.assertFalse(vote_records.exists())
+        vote_records = VoteRecord.objects.all()
+        # Should not create vote record
+        self.assertEqual(vote_records.count(), 0)
 
-        cast_ballots = CastBallot.objects.filter(assoc_ballot=wrong_ballot)
-        """Should not create cast ballot"""
+        cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
+        # Should not create cast ballot
         self.assertFalse(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=self.choice)
+        # should not create a cast vote
+        self.assertFalse(cast_votes.exists())
 
     def test_vote_finished(self):
         wrong_ballot = Ballot.objects.create(ballot_title="Wrong", district="BaltimoreCounty", pub_date=timezone.now())
         wrong_ballot.save()
         question1 = Question.objects.create(question_text="Q1", ballot=wrong_ballot)
         question1.save()
-        vote_record = VoteRecord.objects.create(voter_signature=self.user.profile.sign, assoc_ballot=wrong_ballot)
+        vote_record = VoteRecord.objects.create(voter_signature=self.sign, assoc_ballot=wrong_ballot)
         vote_record.save()
+        choice1 = Choice.objects.create(choice_text="A", question=question1)
+        choice1.save()
         self.client.force_login(self.user)
-        response1 = self.client.post(reverse('ballots:detail', kwargs={'ballot_id': wrong_ballot.pk}),
-                                     {self.question.question_text: self.choice.pk})
-        response2 = self.client.get(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}))
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
+                                    {question1.question_text: choice1.pk})
+
+        vote_records = VoteRecord.objects.all()
+        # Should already exist
+        self.assertEqual(vote_records.count(), 1)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=wrong_ballot)
-        """Should not create cast ballot"""
+        # Should not create cast ballot
         self.assertFalse(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=choice1)
+        # should not create a cast vote
+        self.assertFalse(cast_votes.exists())
 
     def test_vote_finished_other_ballot(self):
         wrong_ballot = Ballot.objects.create(ballot_title="Wrong", district="BaltimoreCounty", pub_date=timezone.now())
         wrong_ballot.save()
         question1 = Question.objects.create(question_text="Q1", ballot=wrong_ballot)
         question1.save()
-        vote_record = VoteRecord.objects.create(voter_signature=self.user.profile.sign, assoc_ballot=self.ballot)
+        vote_record = VoteRecord.objects.create(voter_signature=self.sign, assoc_ballot=self.ballot)
         vote_record.save()
+        choice1 = Choice.objects.create(choice_text="A", question=question1)
+        choice1.save()
         self.client.force_login(self.user)
-        response1 = self.client.post(reverse('ballots:detail', kwargs={'ballot_id': wrong_ballot.pk}),
-                                     {self.question.question_text: self.choice.pk})
-        response2 = self.client.get(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}))
+        response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
+                                    {question1.question_text: choice1.pk})
+
+        vote_records = VoteRecord.objects.filter(voter_signature=self.sign).filter(assoc_ballot=wrong_ballot)
+        # Should create a new vote record
+        self.assertTrue(vote_records.exists())
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=wrong_ballot)
-        """Should create cast ballot"""
+        #Should create cast ballot
         self.assertTrue(cast_ballots.exists())
+
+        cast_votes = CastVote.objects.filter(choice=choice1)
+        # should not create a cast vote
+        self.assertTrue(cast_votes.exists())
