@@ -22,6 +22,7 @@ class IndexTests(TestCase):
         self.ballot.save()
         signer = Signer()
         self.sign = signer.sign(self.user.profile.sign)
+        self.sign = self.sign[51:]
 
     """index url tests"""
     def test_index_url_exists(self):
@@ -127,7 +128,6 @@ class IndexTests(TestCase):
         self.assertEqual(response.context['ballot_list'].count(), 2)
         """finished list size should not change"""
         self.assertEqual(response.context['finished_ballots'].count(), 0)
-
         vote_record = VoteRecord(voter_signature=self.sign, assoc_ballot=finished_ballot)
         vote_record.save()
         response = self.client.get(reverse('ballots:index'))
@@ -157,6 +157,7 @@ class DetailViewTests(TestCase):
         self.ballot.save()
         signer = Signer()
         self.sign = signer.sign(self.user.profile.sign)
+        self.sign = self.sign[51:]
 
     """detail url tests"""
 
@@ -256,6 +257,7 @@ class VoteViewTests(TestCase):
         self.choice.save()
         signer = Signer()
         self.sign = signer.sign(self.user.profile.sign)
+        self.sign = self.sign[51:]
 
     """vote url tests"""
 
@@ -293,9 +295,9 @@ class VoteViewTests(TestCase):
 
     """voting behavior tests"""
     def test_vote_successful(self):
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         # Should not exist yet
-        self.assertFalse(vote_records.exists())
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
         # Should not exist yet
@@ -309,9 +311,9 @@ class VoteViewTests(TestCase):
         response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': self.ballot.pk}),
                                      {self.question.question_text: self.choice.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         #Should create vote record
-        self.assertTrue(vote_records.exists())
+        self.assertEqual(vote_records.count(), 1)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
         #Should create cast ballot
@@ -337,9 +339,9 @@ class VoteViewTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': self.ballot.pk}), {})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         #Should create vote record
-        self.assertFalse(vote_records.exists())
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
         #Should create cast ballot
@@ -360,9 +362,9 @@ class VoteViewTests(TestCase):
         response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id':wrong_ballot.pk}),
                                     {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         # Should not create vote record
-        self.assertFalse(vote_records.exists())
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
         # Should not create cast ballot
@@ -384,9 +386,9 @@ class VoteViewTests(TestCase):
         response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
                                     {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         # Should not create vote record
-        self.assertFalse(vote_records.exists())
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
         # Should not create cast ballot
@@ -407,9 +409,9 @@ class VoteViewTests(TestCase):
         response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
                                     {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         # Should not create vote record
-        self.assertFalse(vote_records.exists())
+        self.assertEqual(vote_records.count(), 0)
 
         cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
         # Should not create cast ballot
@@ -432,15 +434,15 @@ class VoteViewTests(TestCase):
         response = self.client.post(reverse('ballots:vote', kwargs={'ballot_id': wrong_ballot.pk}),
                                     {question1.question_text: choice1.pk})
 
-        vote_records = VoteRecord.objects.filter(voter_signature=self.sign)
+        vote_records = VoteRecord.objects.all()
         # Should already exist
-        self.assertTrue(vote_records.exists())
+        self.assertEqual(vote_records.count(), 1)
 
-        cast_ballots = CastBallot.objects.filter(assoc_ballot=self.ballot)
+        cast_ballots = CastBallot.objects.filter(assoc_ballot=wrong_ballot)
         # Should not create cast ballot
         self.assertFalse(cast_ballots.exists())
 
-        cast_votes = CastVote.objects.filter(choice=self.choice)
+        cast_votes = CastVote.objects.filter(choice=choice1)
         # should not create a cast vote
         self.assertFalse(cast_votes.exists())
 

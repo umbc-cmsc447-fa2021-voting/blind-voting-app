@@ -22,6 +22,7 @@ def index(request):
         return redirect('/users/login/')
     signer = Signer()
     sign = signer.sign(request.user.profile.sign)
+    sign = sign[51:]
     today = timezone.now()
     vote_records = VoteRecord.objects.filter(voter_signature__exact=sign)
     finished_ballot_ids = []
@@ -47,6 +48,7 @@ def detail(request, ballot_id):
         raise Http404("Ballot does not exist")
     signer = Signer()
     sign = signer.sign(request.user.profile.sign)
+    sign = sign[51:]
     if ballot.due_date > timezone.now() and ballot.pub_date < timezone.now()\
             and ballot.district.lower() == request.user.profile.district.lower() and not\
             VoteRecord.objects.filter(voter_signature=sign).filter(assoc_ballot=ballot).exists():
@@ -93,6 +95,7 @@ def vote(request, ballot_id):
     questions = get_list_or_404(Question, ballot=ballot)
     signer = Signer()
     sign = signer.sign(request.user.profile.sign)
+    sign = sign[51:]
     if ballot.pub_date > timezone.now() or ballot.due_date < timezone.now() \
             or ballot.district.lower() != request.user.profile.district.lower()\
             or VoteRecord.objects.filter(voter_signature=sign).filter(assoc_ballot=ballot).exists():
@@ -105,6 +108,7 @@ def vote(request, ballot_id):
         if len(selected_choices) > 0:
             signer = Signer()
             sign = signer.sign(request.user.profile.sign)
+            sign = sign[51:]
             new_record = VoteRecord.objects.create(assoc_ballot=ballot, voter_signature=sign)
             new_record.save()
             new_ballot = CastBallot.objects.create(assoc_ballot=ballot)
