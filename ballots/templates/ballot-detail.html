@@ -10,6 +10,19 @@
                 <small class="text-muted">{{ballot.district}}</small>
             </div>
         </div>
-
+        {% for question in ballot.question_set.all %}
+            <p style="font-size:160%;"> {{forloop.counter}}. {{question.question_text}}</p>
+            {% for choice in question.choice_set.all %}
+            <p> &emsp; {{choice.choice_text}} </p>
+            {% endfor %}
+            <p>
+            <!--Spacing Between Questions-->
+            </p>
+        {% endfor %}
+        {% if ballot.pub_date >= today %}
+        <a href="{% url 'ballots:edit' pk=ballot.pk %}" class="btn btn-primary btn-sm" >Edit</a>
+        <a href="{% url 'ballots:edit' pk=ballot.pk %}" class="btn btn-primary btn-sm" >Delete</a>
+        {% endif %}
+         <a class="text-dark" href="{% url 'ballots:ballot-admin'%}">Return</a>
     </div>
     {% endblock %}

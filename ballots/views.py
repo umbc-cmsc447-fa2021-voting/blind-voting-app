@@ -76,7 +76,7 @@ def results(request, ballot_id):
         raise Http404("Ballot does not exist")
     if ballot.due_date > timezone.now():
         return redirect(reverse('ballots:index'))
-    return render(request, 'ballots/results.html', context=context)
+    return render(request, 'ballots/vote.html', context=context)
 
 
 
@@ -247,5 +247,10 @@ class BallotDetailView(DetailView):
     model = Ballot
     template_name = 'ballot-detail.html'
     context_object_name = 'ballot'
+
+    def get_context_data(self, **kwargs):
+        context = super(BallotDetailView, self).get_context_data(**kwargs)
+        context['today'] = timezone.now()
+        return context
 
 
