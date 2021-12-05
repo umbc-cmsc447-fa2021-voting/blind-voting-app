@@ -9,6 +9,9 @@ from django.urls import reverse
 
 
 # Create your models here.
+from django_cryptography.fields import encrypt
+
+
 def now_plus_7():
     return timezone.now() + datetime.timedelta(days=7)
 
