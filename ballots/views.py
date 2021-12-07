@@ -30,11 +30,12 @@ def index(request):
     finished_ballot_ids = []
     for record in vote_records:
         finished_ballot_ids.append(record.assoc_ballot.id)
-    ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
+    ballot_list = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district) \
         .exclude(id__in=finished_ballot_ids).order_by('due_date')
     finished_ballots = Ballot.objects.filter(pub_date__lte=today).filter(district__iexact=request.user.profile.district)\
-        .filter(id__in=finished_ballot_ids).order_by('due_date')
-    context = {"ballot_list": ballot_list, "finished_ballots": finished_ballots, "today": today}
+        .filter(id__in=finished_ballot_ids).filter(due_date__gte=today).order_by('due_date')
+    old_ballots = Ballot.objects.filter(due_date__lte=today).filter(district__iexact=request.user.profile.district)
+    context = {"ballot_list": ballot_list, "finished_ballots": finished_ballots, "old_ballots": old_ballots, "today": today}
     return render(request, 'ballots/index.html', context=context)
 
 
@@ -85,6 +86,11 @@ def results(request, ballot_id):
         raise Http404("Ballot does not exist")
     if ballot.due_date > timezone.now():
         return redirect(reverse('ballots:index'))
+    for question in question_list:
+        choices = Choice.objects.filter(question=question)
+        for choice in choices:
+            choice.votes = CastVote.objects.filter(choice=choice).count()
+            choice.save()
     return render(request, 'ballots/vote.html', context=context)
 
 

@@ -59,12 +59,10 @@
             <ol>
                 {% if finished_ballots %}
                 {% for ballot in finished_ballots %}
-                {% if ballot.due_date >= today %}
                 <li>
                     {{ ballot.ballot_title }}
                     <p>{{ ballot.ballot_description}}</p>
                 </li>
-                {% endif %}
                 {% endfor %}
                 {% else %}
                 <p>No completed ballots</p>
@@ -80,7 +78,7 @@
         <p>
             <ol>
                 {% if ballot_list %}
-                {% for ballot in ballot_list %}
+                {% for ballot in old_ballots %}
                 {% if ballot.due_date < today %}
                 <li>
                     {{ ballot.ballot_title }}
