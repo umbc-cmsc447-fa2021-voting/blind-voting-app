@@ -473,6 +473,100 @@ class BallotDetailTests(TestCase):
         url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
         response = self.client.get(url)
         self.assertNotEqual(response.status_code, 404)
+
+    def test_detail_anon_redirect(self):
+        """
+        if no user is logged in redirects to login page
+        """
+        url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertRedirects(response, '/users/login/')
+
+    def test_detail_non_staff_redirect(self):
+        """
+        if non admin is logged in redirects to ballot index
+        """
+        self.client.force_login(self.user)
+        url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertRedirects(response, '/')
+
+    def test_detail_staff_access(self):
+        """
+        if admin is logged in response succeeds
+        """
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        url = reverse('ballots:ballot-detail', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
     """
     end url tests
     """
+
+class BallotDeleteTests(TestCase):
+    def setUp(self):
+        self.ballot = Ballot.objects.create(ballot_title="Test")
+        self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
+                                        password='password123', email='JohnSmith@gmail.com')
+        self.user.save
+
+    """
+    edit choice url tests
+    """
+    def test_delete_url_exists(self):
+        url = reverse('ballots:delete', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 404)
+
+    def test_delete_anon_redirect(self):
+        """
+        if no user is logged in redirects to login page
+        """
+        url = reverse('ballots:delete', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertRedirects(response, '/users/login/')
+
+    def test_delete_non_staff_redirect(self):
+        """
+        if non admin is logged in redirects to ballot index
+        """
+        self.client.force_login(self.user)
+        url = reverse('ballots:delete', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertRedirects(response, '/')
+
+    def test_delete_staff_access(self):
+        """
+        if admin is logged in response succeeds
+        """
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        url = reverse('ballots:delete', kwargs={'pk': self.ballot.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_delete_old_ballot(self):
+        """
+        if admin is logged in response succeeds
+        """
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        old_ballot = Ballot.objects.create(ballot_title="Test", pub_date=timezone.now()-datetime.timedelta(days=1))
+        url = reverse('ballots:delete', kwargs={'pk': old_ballot.pk})
+        response = self.client.get(url)
+        self.assertRedirects(response, '/ballot-admin')
+    """
+    end url tests
+    """
+    def test_delete_function(self):
+        """
+        ballot should be removed from ballot objects
+        """
+        self.assertEqual(Ballot.objects.all().count(), 1)
+        admin = User.objects.create_superuser('testadmin', 'a@a.com', 'pass123')
+        self.client.force_login(admin)
+        url = reverse('ballots:delete', kwargs={'pk': self.ballot.pk})
+        response = self.client.post(url)
+        self.assertEqual(Ballot.objects.all().count(), 0)
+        self.assertEqual(response.status_code, 302)

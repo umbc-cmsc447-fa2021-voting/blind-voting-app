@@ -18,6 +18,13 @@ class BallotsAdmin(admin.ModelAdmin):
         else:
             return []
 
+    def has_delete_permission(self, request, obj=None):
+        # Disable delete
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        # Disable delete
+        return False
 
 class QuestionAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
@@ -26,6 +33,13 @@ class QuestionAdmin(admin.ModelAdmin):
         else:
             return []
 
+    def has_delete_permission(self, request, obj=None):
+        # Disable delete
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        # Disable delete
+        return False
 
 class ChoiceAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
@@ -33,6 +47,14 @@ class ChoiceAdmin(admin.ModelAdmin):
             return ["question", "choice_text", "votes"]  # Once the question is chosen it cannot change
         else:
             return ["votes"]  # Makes the vote field readonly. The admins can not edit it
+
+    def has_delete_permission(self, request, obj=None):
+        # Disable delete
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        # Disable delete
+        return False
 
 
 admin.site.register(Choice, ChoiceAdmin)
