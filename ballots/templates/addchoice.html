@@ -39,7 +39,7 @@
     <hr>
     <p>
       <button type="submit" value="Update Choices" class="btn btn-primary w-100 mb-3">Update Choices</button>
-
+      <a href="{% url 'ballots:ballot-detail' pk=question.ballot.pk%}" role="button" class="btn btn-secondary w-100">Cancel</a>
     </p>
   </form>
 

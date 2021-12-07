@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.utils import timezone
-from django.views.generic import UpdateView, CreateView, ListView, FormView
+from django.views.generic import UpdateView, CreateView, ListView, FormView, DeleteView
 from django.views.generic.detail import SingleObjectMixin, DetailView
 from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 
@@ -85,7 +85,7 @@ def results(request, ballot_id):
         raise Http404("Ballot does not exist")
     if ballot.due_date > timezone.now():
         return redirect(reverse('ballots:index'))
-    return render(request, 'ballots/results.html', context=context)
+    return render(request, 'ballots/vote.html', context=context)
 
 
 
@@ -192,7 +192,6 @@ class BallotEditView(UserAccessMixin, UpdateView):
     model = Ballot
     form_class = AddBallotForm
     template_name = 'ballotedit.html'
-    success_url = '/ballot-admin'
 
     def form_valid(self, form):
         form.save()
@@ -202,6 +201,9 @@ class BallotEditView(UserAccessMixin, UpdateView):
         if(self.get_object().pub_date <= timezone.now()):
             return redirect('/ballot-admin')
         return super().get(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('ballots:ballot-detail', kwargs={'pk': self.object.pk})
 
 
 class AddQuestionView(UserAccessMixin, SingleObjectMixin, FormView):
@@ -234,7 +236,7 @@ class AddQuestionView(UserAccessMixin, SingleObjectMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('ballots:edit', kwargs={'pk': self.object.pk})
+        return reverse('ballots:questions', kwargs={'pk': self.object.pk})
 
 
 class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
@@ -268,12 +270,35 @@ class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('ballots:questions', kwargs={'pk': self.object.ballot.pk})
+        return reverse('ballots:choices', kwargs={'pk': self.object.pk})
 
 
-class BallotDetailView(DetailView):
+class BallotDetailView(UserAccessMixin, DetailView):
+    permission_required = 'ballot.change_ballot'
     model = Ballot
     template_name = 'ballot-detail.html'
     context_object_name = 'ballot'
+
+    def get_context_data(self, **kwargs):
+        context = super(BallotDetailView, self).get_context_data(**kwargs)
+        context['today'] = timezone.now()
+        return context
+
+class BallotDeleteView(UserAccessMixin, DeleteView):
+    permission_required = 'ballot.change_ballot'
+    template_name = 'ballot-delete.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if (self.object.pub_date <= timezone.now()):
+            return redirect('/ballot-admin')
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self):
+        id = self.kwargs.get("pk")
+        return get_object_or_404(Ballot, pk=id)
+
+    def get_success_url(self):
+        return reverse('ballots:ballot-admin')
 
 
