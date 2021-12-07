@@ -12,6 +12,11 @@ class BallotsAdmin(admin.ModelAdmin):
     fieldsets = [(None, {'fields': ['ballot_title', 'ballot_description']}),
                  ('Date Information', {'fields': ['pub_date', 'due_date']}),
                  (None, {'fields': ['district']})]
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ["ballot_title", "ballot_description", "pub_date", "due_date", "district"]  # Once the ballot is chosen it cannot be change
+        else:
+            return []
 
 
 class QuestionAdmin(admin.ModelAdmin):

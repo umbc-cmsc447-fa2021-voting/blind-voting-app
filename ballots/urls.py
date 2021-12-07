@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import AddBallotView, ArchivedBallotsView, BallotEditView, BallotAdminView, PublishedBallotsView, AddQuestionView, AddChoiceView
+from .views import AddBallotView, ArchivedBallotsView, BallotEditView, BallotAdminView, PublishedBallotsView, \
+    AddQuestionView, AddChoiceView, BallotDeleteView
 from .views import BallotDetailView, PastBallotsView
 from . import views
 
@@ -18,4 +19,5 @@ urlpatterns = [
     path('<int:pk>/detail', BallotDetailView.as_view(), name='ballot-detail'),
     path('<int:pk>/questions/', AddQuestionView.as_view(), name='questions'),
     path('<int:pk>/choices/', AddChoiceView.as_view(), name='choices'),
+    path('<int:pk>/delete', BallotDeleteView.as_view(), name='delete'),
 ]

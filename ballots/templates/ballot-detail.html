@@ -28,7 +28,7 @@
             </p>
         </div>
         <a href="{% url 'ballots:edit' pk=ballot.pk %}" class="btn btn-primary btn-sm" >Edit</a>
-        <a href="{% url 'ballots:edit' pk=ballot.pk %}" class="btn btn-primary btn-sm" >Delete</a>
+        <a href="{% url 'ballots:delete' pk=ballot.pk %}" class="btn btn-primary btn-sm" >Delete</a>
         {% endif %}
         <div>
             <p>
