@@ -21,7 +21,6 @@
       <h5>
         {% if question_form.instance.id %}
           Question: {{ question_form.instance.question_text }}
-          <a class="text-dark" href="{% url 'ballots:choices' pk=question_form.instance.pk %}">Add Choices</a>
         {% else %}
           {% if form.forms|length > 1 %}
             Add another Question
@@ -40,7 +39,7 @@
     <hr>
     <p>
       <button type="submit" value="Update Questions" class="btn btn-primary w-100 mb-3">Update Questions</button>
-      <a href="{% url 'ballots:edit' pk=ballot.pk%}" role="button" class="btn btn-secondary w-100">Cancel</a>
+      <a href="{% url 'ballots:ballot-detail' pk=ballot.pk%}" role="button" class="btn btn-secondary w-100">Cancel</a>
     </p>
   </form>
 

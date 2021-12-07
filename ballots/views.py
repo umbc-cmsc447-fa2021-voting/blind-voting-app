@@ -234,7 +234,7 @@ class AddQuestionView(UserAccessMixin, SingleObjectMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('ballots:edit', kwargs={'pk': self.object.pk})
+        return reverse('ballots:questions', kwargs={'pk': self.object.pk})
 
 
 class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
@@ -268,7 +268,7 @@ class AddChoiceView(UserAccessMixin, SingleObjectMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('ballots:questions', kwargs={'pk': self.object.ballot.pk})
+        return reverse('ballots:choices', kwargs={'pk': self.object.pk})
 
 
 class BallotDetailView(DetailView):
