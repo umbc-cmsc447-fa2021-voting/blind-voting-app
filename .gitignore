@@ -1,7 +1,7 @@
 __pycache__/
+.venv/
+staticfiles/
 
 db.sqlite3
-
 settings_production.py
 settings_development.py
-.venv/

@@ -12,11 +12,8 @@ import django_heroku
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 
 # Application definition
@@ -62,6 +59,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blind_voting_app.wsgi.application'
 
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -82,6 +80,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Added for Login Functionality
+
 LOGIN_REDIRECT_URL = '/'
 
 
@@ -103,14 +102,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
 
-django_heroku.settings(locals())
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Import additional settings depending on the environment type
+
+if os.getenv('DJANGO_ENV') == 'PRODUCTION':
+    from .settings_production import *
+else:
+    from .settings_development import *
+
+# Special PostgreSQL etc configurationfor Heroku deployment
+# https://devcenter.heroku.com/articles/deploying-python
+
+django_heroku.settings(locals())
