@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
@@ -49,7 +51,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             send_mail(
                 'Blind Voting App - Account Created',
                 f'An account for you has been created under the username "{instance.username}"!\nPlease set a password for your new account by visiting the following URL: {url}',
-                None,
+                os.getenv('EMAIL_HOST_USER'),
                 [instance.email],
                 fail_silently=True
             )
@@ -61,7 +63,7 @@ def delete_user_profile(sender, instance, **kwargs):
         send_mail(
             'Blind Voting App - Account Deleted',
             f'The account named "{instance.username}" associated with this email has been deleted.',
-            None,
+            os.getenv('EMAIL_HOST_USER'),
             [instance.email],
             fail_silently=True
         )
