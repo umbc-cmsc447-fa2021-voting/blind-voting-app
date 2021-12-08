@@ -60,8 +60,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blind_voting_app.wsgi.application'
 
-DEBUG = False
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -124,6 +122,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 if os.getenv('DJANGO_ENV') != 'production':
     from .settings_development import *
 else:
+    DEBUG = True
+
     DEFAULT_DOMAIN = 'blind-voting-app.herokuapp.com'
 
     DATABASES = { 'default': dj_database_url.config() }
