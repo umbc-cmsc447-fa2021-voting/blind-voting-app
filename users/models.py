@@ -51,7 +51,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             send_mail(
                 'Blind Voting App - Account Created',
                 f'An account for you has been created under the username "{instance.username}"!\nPlease set a password for your new account by visiting the following URL: {url}',
-                os.getenv('EMAIL_HOST_USER'),
+                None,
                 [instance.email],
                 fail_silently=False
             )
@@ -63,7 +63,7 @@ def delete_user_profile(sender, instance, **kwargs):
         send_mail(
             'Blind Voting App - Account Deleted',
             f'The account named "{instance.username}" associated with this email has been deleted.',
-            os.getenv('EMAIL_HOST_USER'),
+            None,
             [instance.email],
             fail_silently=False
         )
