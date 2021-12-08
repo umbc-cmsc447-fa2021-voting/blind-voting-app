@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ object.title }}</h1>
+    <form method='POST'>{% csrf_token %}
+    <h1>Are you sure you want to delete ballot: "{{object.ballot_title }}"?</h1>
+    <p><input type='submit' class="btn btn-primary" value='Yes' /></p>
+        <a href="{% url 'ballots:ballot-detail' pk=ballot.pk%}" class="btn btn-secondary">Cancel</a>
+</form>
+<p>{{ object.content }}</p>
+{% endblock %}

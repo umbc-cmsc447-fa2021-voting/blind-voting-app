@@ -1,13 +1,13 @@
 {% extends "base.html" %}
     {% block content %}
     <div class="container">
-        <a href="/add/">add poll</a>
         <div class="px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
             <h1 class="display-4">Ballots</h1>
             <p class="lead">Ballots managed under your district</p>
         </div>
-        <a class="text-dark" href="{% url 'ballots:ballot-admin'%}">Unpublished Ballots</a>
-        <a class="text-dark" href="{% url 'ballots:published'%}">Published Ballots</a>
+        <a class="text-dark" href="{% url 'ballots:ballot-admin'%}">Unpublished Ballots </a>|
+        <a class="text-dark" href="{% url 'ballots:published'%}">Published Ballots </a>|
+        <a class="text-dark" href="{% url 'ballots:archived'%}">Archived Ballots</a>
         <div class="py-5">
             <div class="row">
                 {% for ballot in ballots %}

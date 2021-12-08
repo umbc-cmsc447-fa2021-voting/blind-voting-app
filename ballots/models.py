@@ -3,16 +3,15 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
-from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-
 from django.urls import reverse
 
 
 # Create your models here.
+from django_cryptography.fields import encrypt
+
+
 def now_plus_7():
     return timezone.now() + datetime.timedelta(days=7)
 
@@ -58,3 +57,14 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
+
+class CastBallot(models.Model):
+    assoc_ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE)
+
+class CastVote(models.Model):
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    ballot = models.ForeignKey(CastBallot, on_delete=models.CASCADE)
+
+class VoteRecord(models.Model):
+    assoc_ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE)
+    voter_signature = models.CharField(max_length=50)
