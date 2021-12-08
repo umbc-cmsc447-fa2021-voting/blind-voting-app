@@ -117,11 +117,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Import additional settings depending on the environment type
+# Generally NOT a good idea to do an env comparison with !=.
 
-if os.getenv('DJANGO_ENV') == 'PRODUCTION':
-    from .settings_production import *
-else:
+if os.getenv('DJANGO_ENV') != 'production':
     from .settings_development import *
+
 
 # Special PostgreSQL etc configurationfor Heroku deployment
 # https://devcenter.heroku.com/articles/deploying-python

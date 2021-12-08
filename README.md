@@ -47,12 +47,15 @@ and visit the url indicated in the console! Enjoy!
 
 ## Using the Application
 Please refer to the READMEs of the various application folders (/users and /ballots) for tips on operating the application.
-*To be improved in the next iteration*
 
 ## Testing
 To run the Django test suite, issue the command:  
 ```shell
 python manage.py test
+```
+If you experience an error that reads something like "Missing staticfiles manifest entry for '...'," run the command
+```shell
+python manage.py collectstatic
 ```
 
 ## Contributing  
