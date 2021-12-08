@@ -16,10 +16,10 @@ python -m pip install -r requirements.txt   # Install requirements listen in req
 ```  
 
 ## Django configuration
-It is necessary to create a personal django settings file which includes some configuration data not available in `blind_voting_app/settings_shared.py`. For testing convience, a template settings file has been included at `blind_voting_app/settings_template.py`. The naming convention for personal settings files is `settings_development.py`, however you may name this file whatever you please, so long as you update the `DJANGO_SETTINGS_MODULE` environment variable appropriately.
+It is necessary to create a personal django settings file which includes some configuration data not available in `blind_voting_app/settings_shared.py`. For testing convience, a template settings file has been included at `blind_voting_app/settings_template.py`. The naming convention for personal settings files is `settings_development.py`.
 
-## PostgreSQL Databse Setup  
-With Django's ORM and migration capabilities, the webapp may be possible to operate using alternative database systems, however we officially support PostgreSQL. After creating your database (we recommend doing it through pgAdmin), place the following python code in your `blind_voting_app/settings_development.py` file with the correct information filled in:
+## Databse Setup  
+With Django's ORM and migration capabilities, the webapp may be possible to operate using alternative database systems, however we officially support PostgreSQL. After creating your database (which we recommend doing through pgAdmin), place the following python code in your `blind_voting_app/settings_development.py` file with the correct information filled in:
 ```python
 DATABASES = {
     'default': {
@@ -32,6 +32,17 @@ DATABASES = {
     }
 }
 ```  
+If you would like to use SQLite3, please place the following python code in your development settings:
+```python
+BASE_DB_DIR = Path(__file__).resolve().parent.parent
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DB_DIR / 'db.sqlite3',
+    }
+}
+```
 Test a successful connection by running the following command:
 ```shell
 python manage.py migrate
