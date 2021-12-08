@@ -11,7 +11,7 @@ from users.models import Profile
 class IndexTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
         profile = self.user.profile
         profile.ssn = "555-55-5555"
@@ -146,7 +146,7 @@ class IndexTests(TestCase):
 class DetailViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
         profile = self.user.profile
         profile.ssn = "555-55-5555"
@@ -242,7 +242,7 @@ class DetailViewTests(TestCase):
 class VoteViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
         profile = self.user.profile
         profile.ssn = "555-55-5555"

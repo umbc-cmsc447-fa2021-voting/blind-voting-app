@@ -1,10 +1,5 @@
 # THIS IS A SETTINGS TEMPLATE FOR TESTING PURPOSES, DO NOT USE IN PRODUCTION
 
-try:
-    from .settings_shared import *
-except ImportError:
-    pass
-
 # This value is used for securing signed data, DO NOT EXPOSE YOUR VERSION OF THIS TO GIT.
 
 SECRET_KEY = ''

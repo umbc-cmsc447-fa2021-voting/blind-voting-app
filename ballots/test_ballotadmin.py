@@ -11,7 +11,7 @@ from .forms import AddBallotForm, BallotQuestionFormset, QuestionChoiceFormset
 class BallotAdminTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -78,7 +78,7 @@ class BallotAdminTests(TestCase):
 class PublishedBallotsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -148,7 +148,7 @@ class PublishedBallotsTests(TestCase):
 class PastBallotsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -234,7 +234,7 @@ class PastBallotsTests(TestCase):
 class BallotAddTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -288,7 +288,7 @@ class BallotEditTests(TestCase):
     def setUp(self):
         self.ballot = Ballot.objects.create(ballot_title="Test")
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -349,7 +349,7 @@ class AddQuestionTests(TestCase):
     def setUp(self):
         self.ballot = Ballot.objects.create(ballot_title="Test")
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -406,7 +406,7 @@ class AddChoiceTests(TestCase):
         self.ballot = Ballot.objects.create(ballot_title="Test")
         self.question = Question.objects.create(question_text="Test", ballot_id=self.ballot.id)
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
@@ -463,7 +463,7 @@ class BallotDetailTests(TestCase):
     def setUp(self):
         self.ballot = Ballot.objects.create(ballot_title="Test")
         self.user = User.objects.create(first_name='John', last_name='Smith', username='testuser',
-                                        password='password123', email='JohnSmith@gmail.com')
+                                        password='password123', email='JohnSmith@fakemail.com')
         self.user.save
 
     """
