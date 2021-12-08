@@ -122,13 +122,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 if os.getenv('DJANGO_ENV') != 'production':
     from .settings_development import *
 else:
+    DATABASES = { 'default': dj_database_url.config() }
+
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
+
     DEBUG = True
 
     DEFAULT_DOMAIN = 'blind-voting-app.herokuapp.com'
 
-    DATABASES = { 'default': dj_database_url.config() }
+    EMAIL_USE_TLS = True
 
-    DATABASES['default']['ATOMIC_REQUESTS'] = True
+    EMAIL_HOST_PORT = 587
+
+
+
 
 
 # Special PostgreSQL etc configurationfor Heroku deployment
