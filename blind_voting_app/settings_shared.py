@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 import django_heroku
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -122,6 +123,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 if os.getenv('DJANGO_ENV') != 'production':
     from .settings_development import *
+else:
+    DATABASES = { 'default': dj_database_url.config() }
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
 
 
 # Special PostgreSQL etc configurationfor Heroku deployment
