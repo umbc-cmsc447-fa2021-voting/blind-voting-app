@@ -7,15 +7,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+import django_heroku
+import dj_database_url
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Application definition
@@ -81,6 +80,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Added for Login Functionality
+
 LOGIN_REDIRECT_URL = '/'
 
 
@@ -103,11 +103,59 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 STATICFILES_DIRS = [
-    BASE_DIR / 'static'
+    os.path.join(BASE_DIR, 'static')
 ]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Import additional settings depending on the environment type
+# Generally NOT a good idea to do an env comparison with !=.
+
+if os.getenv('DJANGO_ENV') != 'production':
+    from .settings_development import *
+else:
+    # DB config
+
+    DATABASES = { 'default': dj_database_url.config() }
+
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
+
+    DEBUG = True
+
+    # For profile encryption
+
+    DEFAULT_DOMAIN = 'blind-voting-app.herokuapp.com'
+
+    # Configure email
+
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+    EMAIL_HOST = os.getenv('EMAIL_HOST')
+
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+    EMAIL_USE_TLS = True
+
+    EMAIL_HOST_PORT = 587
+
+
+
+
+
+
+# Special PostgreSQL etc configurationfor Heroku deployment
+# https://devcenter.heroku.com/articles/deploying-python
+
+django_heroku.settings(locals())

@@ -43,7 +43,7 @@ class ProfileModelTest(TestCase):
 
 class LoginFlowTests(TestCase):
     def setUp(self):
-        User.objects.create(username = 'johnny', first_name='John', last_name='Doe', email='JohnDoe@gmail.com', password='password123')
+        User.objects.create(username = 'johnny', first_name='John', last_name='Doe', email='JohnDoe@fakemail.com', password='password123')
         profile = User.profile
         profile.ssn = '111-11-1111'
         profile.district = 'HowardCounty'
@@ -83,7 +83,7 @@ class PasswordResetFlowTests(TestCase):
     user = None
 
     def setUp(self):
-        self.user = User.objects.create(username='JohnDoe', first_name='John', last_name='Doe', email='JohnDoe@gmail.com')
+        self.user = User.objects.create(username='JohnDoe', first_name='John', last_name='Doe', email='JohnDoe@fakemail.com')
         profile = User.profile
         profile.ssn = '111-11-1111'
         profile.district = 'HowardCounty'
@@ -94,7 +94,7 @@ class PasswordResetFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_password_reset_success(self):
-        data = { 'email': 'JohnDoe@gmail.com' }
+        data = { 'email': 'JohnDoe@fakemail.com' }
         response = self.client.post(reverse('password_reset'), data)
 
         self.assertEqual(response.status_code, 302)
@@ -115,7 +115,7 @@ class PasswordResetFlowTests(TestCase):
         self.assertEqual(len(mail.outbox), outbox_len_before)
 
     def test_password_reset_confirm(self):
-        data = { 'email': 'JohnDoe@gmail.com' }
+        data = { 'email': 'JohnDoe@fakemail.com' }
         response = self.client.post(reverse('password_reset'), data)
 
         token = response.context[0]['token']
@@ -137,7 +137,7 @@ class AccountTests(TestCase):
     user = None
 
     def setUp(self):
-        self.user = User.objects.create(username='JohnDoe', first_name='John', last_name='Doe', email='JohnDoe@gmail.com')
+        self.user = User.objects.create(username='JohnDoe', first_name='John', last_name='Doe', email='JohnDoe@fakemail.com')
         profile = User.profile
         profile.ssn = '111-11-1111'
         profile.district = 'HowardCounty'

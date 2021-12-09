@@ -14,7 +14,7 @@ class BallotArchiveTests(TestCase):
             last_name='Smith',
             username='testuser',
             password='password123', 
-            email='JohnSmith@gmail.com'
+            email='JohnSmith@fakemail.com'
         )
         self.user.save
 
